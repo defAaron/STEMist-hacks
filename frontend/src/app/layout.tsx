@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
-import { Figtree, Geist_Mono, Syne } from "next/font/google";
+import { Geist_Mono, Montserrat, Open_Sans } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
 import "./globals.css";
 
-const figtree = Figtree({
-  variable: "--font-figtree",
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
   subsets: ["latin"],
   display: "swap",
 });
 
-const syne = Syne({
-  variable: "--font-syne",
+const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
   display: "swap",
 });
@@ -41,7 +41,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${figtree.variable} ${syne.variable} ${geistMono.variable} h-full`}
+      className={`${openSans.variable} ${montserrat.variable} ${geistMono.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">
         <TooltipProvider delayDuration={200}>
