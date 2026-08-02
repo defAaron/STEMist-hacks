@@ -662,7 +662,8 @@ If LLM down: cached briefs. If SSE down: dashboard poll `GET /events` every 1s (
 - Real phishing campaigns / mailers  
 - Perfect STIX 2.1 validator compliance  
 - Mobile-first UI  
-- Multi-user auth for MVP (optional single shared operator token later)  
+- School SSO / OAuth IdPs (email/password + Bearer sessions + per-user `events.user_id` isolation are in MVP)  
+
 
 ---
 
@@ -707,7 +708,7 @@ A feature is done when:
 | FE host for decoys | Same Next app | Need separate domains for realism |
 | Agent framework | Linear pipeline + SSE | Team wants LangGraph explicitly |
 | Geo | Scenario/static hash | Easy API key for live intel |
-| Auth on dashboard | None (public demo) | Abuse appears |
+| Auth on dashboard | Email/password + Bearer session; per-user event isolation | Need school SSO / shared rooms |
 | Stats baseline | `SEED_STATS_BASELINE` + DB count | Judges ask honesty → label UI |
 
 ---

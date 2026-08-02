@@ -68,6 +68,7 @@ _TEXT_FIELDS = frozenset(
         "source",
         "scenario_id",
         "decoy_id",
+        "user_id",
         "ip",
         "user_agent",
         "path",
@@ -134,6 +135,7 @@ CREATE TABLE IF NOT EXISTS events (
     source TEXT NOT NULL,
     scenario_id TEXT,
     decoy_id TEXT NOT NULL,
+    user_id TEXT,
     ip TEXT NOT NULL DEFAULT '',
     user_agent TEXT NOT NULL DEFAULT '',
     path TEXT,
@@ -159,12 +161,32 @@ CREATE TABLE IF NOT EXISTS events (
 )
 """
 
+_CREATE_USERS_SQL = """
+CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    email TEXT NOT NULL UNIQUE,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+)
+"""
+
+_CREATE_SESSIONS_SQL = """
+CREATE TABLE IF NOT EXISTS sessions (
+    token TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+)
+"""
+
 _MIGRATION_COLUMNS = {
     "created_at": "TEXT NOT NULL DEFAULT ''",
     "updated_at": "TEXT NOT NULL DEFAULT ''",
     "source": "TEXT NOT NULL DEFAULT 'live'",
     "scenario_id": "TEXT",
     "decoy_id": "TEXT NOT NULL DEFAULT 'unknown'",
+    "user_id": "TEXT",
     "ip": "TEXT NOT NULL DEFAULT ''",
     "user_agent": "TEXT NOT NULL DEFAULT ''",
     "path": "TEXT",
@@ -194,6 +216,9 @@ _INDEX_SQL = (
     "CREATE INDEX IF NOT EXISTS idx_events_technique ON events(technique)",
     "CREATE INDEX IF NOT EXISTS idx_events_source ON events(source)",
     "CREATE INDEX IF NOT EXISTS idx_events_scenario_id ON events(scenario_id)",
+    "CREATE INDEX IF NOT EXISTS idx_events_user_id ON events(user_id)",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)",
+    "CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)",
 )
 
 
@@ -357,6 +382,8 @@ class EventStore:
         with self._lock, closing(self._new_connection()) as connection:
             if not self._uri:
                 connection.execute("PRAGMA journal_mode = WAL")
+            connection.execute(_CREATE_USERS_SQL)
+            connection.execute(_CREATE_SESSIONS_SQL)
             connection.execute(_CREATE_EVENTS_SQL)
             existing = {
                 row["name"]
@@ -448,13 +475,23 @@ class EventStore:
                 return None
         return self.get_event(str(event_id))
 
-    def get_event(self, event_id: str) -> dict[str, Any] | None:
-        """Return one event by ID, or ``None``."""
+    def get_event(
+        self, event_id: str, *, user_id: str | None = None
+    ) -> dict[str, Any] | None:
+        """Return one event by ID, or ``None``.
+
+        When ``user_id`` is provided, the event must belong to that user.
+        """
+
+        if user_id is None:
+            sql = "SELECT * FROM events WHERE id = ?"
+            params: tuple[Any, ...] = (str(event_id),)
+        else:
+            sql = "SELECT * FROM events WHERE id = ? AND user_id = ?"
+            params = (str(event_id), str(user_id))
 
         with closing(self._new_connection()) as connection:
-            row = connection.execute(
-                "SELECT * FROM events WHERE id = ?", (str(event_id),)
-            ).fetchone()
+            row = connection.execute(sql, params).fetchone()
         return self._decode_row(row) if row is not None else None
 
     def list_events(
@@ -462,6 +499,7 @@ class EventStore:
         *,
         limit: int = 50,
         offset: int = 0,
+        user_id: str | None = None,
         source: str | None = None,
         technique: str | None = None,
         severity: str | None = None,
@@ -476,6 +514,7 @@ class EventStore:
             raise ValueError("offset must be non-negative")
 
         filters = {
+            "user_id": user_id,
             "source": source,
             "technique": technique,
             "severity": severity,
@@ -499,28 +538,40 @@ class EventStore:
             ).fetchall()
         return [self._decode_row(row) for row in rows]
 
-    def get_stats(self, *, source: str | None = None) -> dict[str, Any]:
+    def get_stats(
+        self, *, user_id: str | None = None, source: str | None = None
+    ) -> dict[str, Any]:
         """Return aggregate counts, including the API contract's core fields."""
 
-        where = " WHERE source = ?" if source is not None else ""
-        params: tuple[Any, ...] = (source,) if source is not None else ()
+        clauses: list[str] = []
+        params: list[Any] = []
+        if user_id is not None:
+            clauses.append("user_id = ?")
+            params.append(str(user_id))
+        if source is not None:
+            clauses.append("source = ?")
+            params.append(source)
+        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        query_params: tuple[Any, ...] = tuple(params)
         with closing(self._new_connection()) as connection:
             summary = connection.execute(
                 f"SELECT COUNT(*) AS total, MAX(created_at) AS last FROM events{where}",
-                params,
+                query_params,
             ).fetchone()
             techniques = connection.execute(
                 f"SELECT technique, COUNT(*) AS count FROM events{where} "
                 "GROUP BY technique",
-                params,
+                query_params,
             ).fetchall()
             severities = connection.execute(
                 f"SELECT severity, COUNT(*) AS count FROM events{where} "
                 "GROUP BY severity",
-                params,
+                query_params,
             ).fetchall()
             sources = connection.execute(
-                "SELECT source, COUNT(*) AS count FROM events GROUP BY source"
+                f"SELECT source, COUNT(*) AS count FROM events{where} "
+                "GROUP BY source",
+                query_params,
             ).fetchall()
         return {
             "attacks_caught": int(summary["total"]),
@@ -533,6 +584,125 @@ class EventStore:
             "by_source": {row["source"]: int(row["count"]) for row in sources},
             "last_event_at": summary["last"],
         }
+
+    def create_user(self, email: str, password_hash: str) -> dict[str, Any]:
+        """Insert a user and return the public user record.
+
+        Raises ``LookupError`` when the email is already registered.
+        """
+
+        user_id = uuid.uuid4().hex
+        created_at = utc_now()
+        normalised_email = str(email).strip().lower()
+        with self._lock, closing(self._new_connection()) as connection:
+
+            def write() -> None:
+                try:
+                    connection.execute(
+                        "INSERT INTO users (id, email, password_hash, created_at) "
+                        "VALUES (?, ?, ?, ?)",
+                        (user_id, normalised_email, password_hash, created_at),
+                    )
+                    connection.commit()
+                except sqlite3.IntegrityError as exc:
+                    raise LookupError("email already registered") from exc
+
+            self._retry_on_busy(write)
+        return {"id": user_id, "email": normalised_email, "created_at": created_at}
+
+    def get_user_by_email(self, email: str) -> dict[str, Any] | None:
+        """Return a user row including ``password_hash``, or ``None``."""
+
+        normalised_email = str(email).strip().lower()
+        with closing(self._new_connection()) as connection:
+            row = connection.execute(
+                "SELECT id, email, password_hash, created_at FROM users "
+                "WHERE email = ?",
+                (normalised_email,),
+            ).fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+    def get_user_by_id(self, user_id: str) -> dict[str, Any] | None:
+        """Return a public user record (no password hash), or ``None``."""
+
+        with closing(self._new_connection()) as connection:
+            row = connection.execute(
+                "SELECT id, email, created_at FROM users WHERE id = ?",
+                (str(user_id),),
+            ).fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+    def create_session(
+        self, user_id: str, token: str, *, expires_at: str
+    ) -> dict[str, Any]:
+        """Persist a session token for ``user_id``."""
+
+        created_at = utc_now()
+        with self._lock, closing(self._new_connection()) as connection:
+
+            def write() -> None:
+                connection.execute(
+                    "INSERT INTO sessions (token, user_id, created_at, expires_at) "
+                    "VALUES (?, ?, ?, ?)",
+                    (token, str(user_id), created_at, expires_at),
+                )
+                connection.commit()
+
+            self._retry_on_busy(write)
+        return {
+            "token": token,
+            "user_id": str(user_id),
+            "created_at": created_at,
+            "expires_at": expires_at,
+        }
+
+    def get_session(self, token: str) -> dict[str, Any] | None:
+        """Return a session row, or ``None`` if missing."""
+
+        with closing(self._new_connection()) as connection:
+            row = connection.execute(
+                "SELECT token, user_id, created_at, expires_at FROM sessions "
+                "WHERE token = ?",
+                (token,),
+            ).fetchone()
+        if row is None:
+            return None
+        return dict(row)
+
+    def delete_session(self, token: str) -> bool:
+        """Delete a session; return whether a row was removed."""
+
+        with self._lock, closing(self._new_connection()) as connection:
+
+            def write() -> sqlite3.Cursor:
+                cursor = connection.execute(
+                    "DELETE FROM sessions WHERE token = ?", (token,)
+                )
+                connection.commit()
+                return cursor
+
+            cursor = self._retry_on_busy(write)
+            return cursor.rowcount > 0
+
+    def delete_expired_sessions(self, *, now: str | None = None) -> int:
+        """Remove expired sessions; return the number deleted."""
+
+        cutoff = now or utc_now()
+        with self._lock, closing(self._new_connection()) as connection:
+
+            def write() -> sqlite3.Cursor:
+                cursor = connection.execute(
+                    "DELETE FROM sessions WHERE expires_at <= ?", (cutoff,)
+                )
+                connection.commit()
+                return cursor
+
+            cursor = self._retry_on_busy(write)
+            return int(cursor.rowcount)
 
     def append_pipeline_step(
         self,
@@ -569,6 +739,7 @@ class EventStore:
             "updated_at": now,
             "source": "live",
             "scenario_id": None,
+            "user_id": None,
             "ip": "",
             "user_agent": "",
             "path": None,
@@ -747,9 +918,12 @@ def update_event(
 
 
 def get_event(
-    event_id: str, *, database: str | os.PathLike[str] | None = None
+    event_id: str,
+    *,
+    database: str | os.PathLike[str] | None = None,
+    user_id: str | None = None,
 ) -> dict[str, Any] | None:
-    return _get_store(database).get_event(event_id)
+    return _get_store(database).get_event(event_id, user_id=user_id)
 
 
 def list_events(
@@ -757,6 +931,7 @@ def list_events(
     database: str | os.PathLike[str] | None = None,
     limit: int = 50,
     offset: int = 0,
+    user_id: str | None = None,
     source: str | None = None,
     technique: str | None = None,
     severity: str | None = None,
@@ -766,6 +941,7 @@ def list_events(
     return _get_store(database).list_events(
         limit=limit,
         offset=offset,
+        user_id=user_id,
         source=source,
         technique=technique,
         severity=severity,
@@ -775,9 +951,57 @@ def list_events(
 
 
 def get_stats(
-    *, database: str | os.PathLike[str] | None = None, source: str | None = None
+    *,
+    database: str | os.PathLike[str] | None = None,
+    user_id: str | None = None,
+    source: str | None = None,
 ) -> dict[str, Any]:
-    return _get_store(database).get_stats(source=source)
+    return _get_store(database).get_stats(user_id=user_id, source=source)
+
+
+def create_user(
+    email: str,
+    password_hash: str,
+    *,
+    database: str | os.PathLike[str] | None = None,
+) -> dict[str, Any]:
+    return _get_store(database).create_user(email, password_hash)
+
+
+def get_user_by_email(
+    email: str, *, database: str | os.PathLike[str] | None = None
+) -> dict[str, Any] | None:
+    return _get_store(database).get_user_by_email(email)
+
+
+def get_user_by_id(
+    user_id: str, *, database: str | os.PathLike[str] | None = None
+) -> dict[str, Any] | None:
+    return _get_store(database).get_user_by_id(user_id)
+
+
+def create_session(
+    user_id: str,
+    token: str,
+    *,
+    expires_at: str,
+    database: str | os.PathLike[str] | None = None,
+) -> dict[str, Any]:
+    return _get_store(database).create_session(
+        user_id, token, expires_at=expires_at
+    )
+
+
+def get_session(
+    token: str, *, database: str | os.PathLike[str] | None = None
+) -> dict[str, Any] | None:
+    return _get_store(database).get_session(token)
+
+
+def delete_session(
+    token: str, *, database: str | os.PathLike[str] | None = None
+) -> bool:
+    return _get_store(database).delete_session(token)
 
 
 def append_pipeline_step(
@@ -801,8 +1025,14 @@ __all__ = [
     "SOURCES",
     "TECHNIQUES",
     "append_pipeline_step",
+    "create_session",
+    "create_user",
+    "delete_session",
     "get_event",
+    "get_session",
     "get_stats",
+    "get_user_by_email",
+    "get_user_by_id",
     "init_db",
     "insert_event",
     "list_events",

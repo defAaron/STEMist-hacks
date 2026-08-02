@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ExternalLink } from "lucide-react";
+import { useState } from "react";
 
 import { BrandMark } from "@/components/shared/brand-mark";
 import { EthicsFooter } from "@/components/shared/ethics-footer";
@@ -18,8 +20,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { logout } from "@/lib/api";
+import type { AuthUser } from "@/lib/types";
 
-export function DashboardShell() {
+export function DashboardShell({ user }: { user: AuthUser }) {
+  const router = useRouter();
+  const [loggingOut, setLoggingOut] = useState(false);
   const {
     events,
     stats,
@@ -33,6 +39,15 @@ export function DashboardShell() {
     upsertEvent,
   } = useDashboardData();
 
+  async function handleLogout() {
+    setLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      router.replace("/login");
+    }
+  }
+
   return (
     <div className="flex min-h-full flex-col">
       <header className="border-b border-border/80 bg-surface/80 px-page py-4 backdrop-blur">
@@ -40,11 +55,22 @@ export function DashboardShell() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <BrandMark href="/" size="sm" />
             <div className="flex flex-wrap items-center gap-2">
+              <span className="hidden text-sm text-muted-foreground sm:inline">
+                {user.email}
+              </span>
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/decoy/portal">
                   Open portal decoy
                   <ExternalLink data-icon="inline-end" />
                 </Link>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={loggingOut}
+                onClick={() => void handleLogout()}
+              >
+                {loggingOut ? "Logging out…" : "Log out"}
               </Button>
             </div>
           </div>

@@ -95,10 +95,11 @@ def test_capture_event_contains_only_safe_signals_and_metadata() -> None:
         },
     )
 
-    event = _build_event(payload, request, "event-1")
+    event = _build_event(payload, request, "event-1", user_id="user-test-1")
 
     assert event["id"] == "event-1"
     assert event["source"] == "live"
+    assert event["user_id"] == "user-test-1"
     assert event["ip"] == "198.51.100.8"
     assert event["decoy_id"] == "scholarship"
     assert event["fields_present"] == [

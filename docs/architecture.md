@@ -18,20 +18,20 @@ STEMist-hacks/
 ├── docs/                  # Product, technical, and dev-context docs
 ├── backend/               # FastAPI API + pipeline + SQLite
 │   ├── app/
-│   │   ├── api/           # Route handlers (capture, events, simulate, export)
+│   │   ├── api/           # Route handlers (auth, capture, events, simulate, export)
 │   │   ├── middleware/    # Rate limits, security headers
-│   │   ├── models/        # DB models and event store
+│   │   ├── models/        # DB models: users, sessions, events
 │   │   ├── pipeline/      # Classify → Enrich → Brief runner
 │   │   ├── scenarios/     # Seeded SC-1..SC-3 JSON fixtures
-│   │   └── services/      # Redaction, STIX export
+│   │   └── services/      # Auth, redaction, STIX export
 │   ├── tests/
 │   └── data/              # Local SQLite (gitignored)
 └── frontend/              # Next.js App Router UI
     └── src/
-        ├── app/           # Routes (landing, dashboard, decoys)
-        ├── components/    # UI, dashboard, shared
+        ├── app/           # Routes (landing, login/signup, dashboard, decoys)
+        ├── components/    # UI, auth, dashboard, shared
         ├── hooks/         # Data fetching and capture submit
-        └── lib/           # API client, types, formatters
+        └── lib/           # API client, auth token, types, formatters
 ```
 
 ---
@@ -39,6 +39,10 @@ STEMist-hacks/
 ## Data flow
 
 ```
+Signup/Login (/signup, /login)
+        │
+        │ Bearer session token (sessionStorage)
+        ▼
 Decoy pages (/decoy/*)          Dashboard (/dashboard)
         │                                │
         │ POST /capture                  │ GET /events, /stats
@@ -46,7 +50,7 @@ Decoy pages (/decoy/*)          Dashboard (/dashboard)
         └────────────┬───────────────────┘
                      ▼
               FastAPI (backend/app)
-                     │
+                     │  require_user → stamp/filter user_id
          ┌───────────┼───────────┐
          ▼           ▼           ▼
     Classify     Enrich       Brief
@@ -54,7 +58,7 @@ Decoy pages (/decoy/*)          Dashboard (/dashboard)
          │           │           │
          └───────────┼───────────┘
                      ▼
-              SQLite event store
+         SQLite (users, sessions, events.user_id)
 ```
 
 **Design rules:**
@@ -63,6 +67,7 @@ Decoy pages (/decoy/*)          Dashboard (/dashboard)
 2. Replay/simulate uses the **same pipeline** as live captures.
 3. Secrets are redacted at the capture boundary.
 4. Demo failover: cached briefs for SC-1..SC-3.
+5. Capture, simulate, dashboard reads, and export require auth and are scoped per user.
 
 ---
 
@@ -72,9 +77,10 @@ Decoy pages (/decoy/*)          Dashboard (/dashboard)
 |----------|-------|---------|
 | `DATABASE_URL` | Backend | SQLite path (local: `./data/honeydesk.db`) |
 | `CORS_ORIGINS` | Backend | Comma-separated frontend origins |
-| `SIMULATE_TOKEN` | Backend + Frontend | Protects replay endpoint |
+| `SIMULATE_TOKEN` | Backend + Frontend | Optional extra gate on replay |
+| `SESSION_TTL_DAYS` | Backend | Bearer session lifetime (default 7) |
 | `NEXT_PUBLIC_API_URL` | Frontend | API base URL |
-| `NEXT_PUBLIC_SIMULATE_TOKEN` | Frontend | Must match backend token |
+| `NEXT_PUBLIC_SIMULATE_TOKEN` | Frontend | Must match backend token when set |
 | `OPENAI_API_KEY` | Backend | Optional live LLM briefs |
 | `BRIEF_FAILOVER_CACHE` | Backend | Use cached briefs when LLM unavailable |
 

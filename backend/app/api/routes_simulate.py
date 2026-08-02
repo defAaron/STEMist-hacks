@@ -13,7 +13,9 @@ from typing import Any
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.api.deps import CurrentUser, require_user
 from app.pipeline.runner import PipelineExecutionError, run_pipeline
+
 
 async def require_simulate_token(
     x_simulate_token: str | None = Header(default=None),
@@ -33,7 +35,7 @@ async def require_simulate_token(
 
 router = APIRouter(
     tags=["simulate"],
-    dependencies=[Depends(require_simulate_token)],
+    dependencies=[Depends(require_user), Depends(require_simulate_token)],
 )
 
 _SCENARIO_FILES = {
@@ -124,7 +126,7 @@ def load_scenario(scenario_id: str) -> dict[str, Any]:
 
 
 @router.post("/simulate")
-async def simulate(request: SimulateRequest) -> dict[str, Any]:
+async def simulate(request: SimulateRequest, user: CurrentUser) -> dict[str, Any]:
     """Run one seeded scenario through the same pipeline as live captures."""
     try:
         scenario = load_scenario(request.scenario_id)
@@ -137,6 +139,7 @@ async def simulate(request: SimulateRequest) -> dict[str, Any]:
     capture = {
         key: value for key, value in scenario.items() if key in _RUNNER_FIELDS
     }
+    capture["user_id"] = user["id"]
     try:
         event = await run_pipeline(capture, source="replay")
     except PipelineExecutionError as exc:

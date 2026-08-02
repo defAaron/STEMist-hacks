@@ -14,26 +14,28 @@
 | Feature | Notes |
 |---------|-------|
 | `GET /health` | Health check |
-| `POST /capture` | Records decoy submissions; redacts secrets; async pipeline |
-| `POST /simulate` | Replays SC-1 / SC-2 / SC-3 through same pipeline |
-| `GET /events`, `GET /events/{id}`, `GET /stats` | Dashboard data |
-| `GET /export/stix/{id}` | STIX 2.1-shaped JSON download |
+| `POST /auth/signup`, `POST /auth/login`, `POST /auth/logout`, `GET /auth/me` | Email/password accounts; opaque Bearer sessions |
+| `POST /capture` | Auth required; stamps `user_id`; redacts secrets; async pipeline |
+| `POST /simulate` | Auth required (+ optional simulate token); per-user replay |
+| `GET /events`, `GET /events/{id}`, `GET /stats` | Auth required; scoped to the caller’s events |
+| `GET /export/stix/{id}` | Auth + ownership check (404 if not yours) |
 | Capture → Classify → Enrich → Brief pipeline | Rules classifier; demo geo; cached/LLM/fallback briefs |
 | Redaction layer | Never stores plaintext passwords / SSN |
 | Seeded scenarios | `sc1.json`, `sc2.json`, `sc3.json` with cached victim briefs |
-| Security middleware | Rate limits, timeouts, optional simulate token |
-| Test suite | 38 tests (capture, classify, pipeline, simulate, STIX, DB) |
+| Security middleware | Rate limits (incl. auth), timeouts, optional simulate token |
+| Test suite | 43 tests (auth isolation, capture, classify, pipeline, simulate, STIX, DB) |
 
 ### Frontend (Next.js App Router)
 
 | Feature | Route / file |
 |---------|--------------|
-| Landing page | `/` — hero, features, FAQ, ethics |
-| Ops dashboard | `/dashboard` — feed, stats, detail, pipeline, replay, export |
-| Portal decoy (P0) | `/decoy/portal` — credential harvest trap |
+| Landing page | `/` — hero, features, FAQ, ethics; CTAs to signup/login |
+| Signup / login | `/signup`, `/login` — session token in `sessionStorage` |
+| Ops dashboard | `/dashboard` — gated; feed, stats, detail, pipeline, replay, export |
+| Portal decoy (P0) | `/decoy/portal` — gated credential harvest trap |
 | Scholarship decoy (P1) | `/decoy/scholarship` — urgency / PII form |
 | Discord decoy (P1) | `/decoy/discord` — social verify landing |
-| Live updates | Poll `/events` + `/stats` every 1s |
+| Live updates | Poll `/events` + `/stats` every 1s (Bearer auth) |
 | Victim brief card | Plain-English brief per event |
 | Replay controls | One-click SC-1 / SC-2 / SC-3 |
 | STIX export button | “Share with school IT” download |
@@ -42,7 +44,7 @@
 
 ### Demo path (90-second script)
 
-1. Open dashboard → 2. Submit portal decoy → 3. Row detonates + pipeline steps → 4. Victim brief → 5. Replay SC-2 / SC-3 → 6. Export JSON
+1. Create account / log in → 2. Open dashboard → 3. Submit portal decoy → 4. Row detonates + pipeline steps → 5. Victim brief → 6. Replay SC-2 / SC-3 → 7. Export JSON
 
 ---
 
@@ -86,6 +88,7 @@
 |------|-----------------|
 | 2026-08-02 | Initial tracker from codebase audit + PRD/BUILDPLAN |
 | 2026-08-02 | Moved to `docs/`; root README added |
+| 2026-08-02 | Per-user email/password auth + full event isolation |
 
 ---
 

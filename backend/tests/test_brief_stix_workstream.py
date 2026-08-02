@@ -75,7 +75,8 @@ def test_stix_bundle_is_stable_structured_and_sanitized():
 
 
 def test_export_route_returns_download(monkeypatch):
-    async def fake_get_event(event_id):
+    async def fake_get_event(event_id, *, user_id):
+        assert user_id == "user-test-1"
         return {
             "id": event_id,
             "created_at": "2026-08-02T15:30:00Z",
@@ -85,7 +86,12 @@ def test_export_route_returns_download(monkeypatch):
         }
 
     monkeypatch.setattr(routes_export, "_get_event", fake_get_event)
-    response = asyncio.run(routes_export.export_stix("evt-1"))
+    user = {
+        "id": "user-test-1",
+        "email": "tester@example.test",
+        "created_at": "2026-08-02T00:00:00.000Z",
+    }
+    response = asyncio.run(routes_export.export_stix("evt-1", user))
     payload = json.loads(response.body)
 
     assert payload["type"] == "bundle"

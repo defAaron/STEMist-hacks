@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { DecoyAuthGate } from "@/components/auth/decoy-auth-gate";
+
 export const metadata: Metadata = {
   title: "Sign in",
   robots: {
@@ -13,5 +15,5 @@ export default function DecoyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return children;
+  return <DecoyAuthGate>{children}</DecoyAuthGate>;
 }

@@ -54,7 +54,7 @@ Passive tools (“paste a link, get a score”) help, but they don’t show **at
 - Real SSH/Telnet honeypots
 - Training a custom ML model from scratch on large datasets
 - Phishing real people or unsolicited Discord spam
-- Multi-tenant school SSO / admin orgs
+- Multi-tenant school SSO / admin orgs (email/password tester accounts with per-user isolation are in MVP)
 - Storing real user passwords in plaintext
 - Mobile native apps
 - Full SOC replacement / SIEM

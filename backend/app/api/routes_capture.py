@@ -16,6 +16,7 @@ from uuid import uuid4
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from app.api.deps import CurrentUser
 from app.config import TRUST_PROXY
 from app.services.redact import (
     normalize_field_name,
@@ -167,7 +168,13 @@ def _client_ip(request: Request) -> str:
     return (request.client.host if request.client else "unknown")[:64]
 
 
-def _build_event(payload: CaptureRequest, request: Request, event_id: str) -> dict[str, Any]:
+def _build_event(
+    payload: CaptureRequest,
+    request: Request,
+    event_id: str,
+    *,
+    user_id: str,
+) -> dict[str, Any]:
     capture = payload.model_dump(mode="json")
     for field_name in capture["fields_present"]:
         flag = secret_flag_for_field(field_name)
@@ -184,6 +191,7 @@ def _build_event(payload: CaptureRequest, request: Request, event_id: str) -> di
         "id": event_id,
         "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         "source": "live",
+        "user_id": user_id,
         "ip": _client_ip(request),
         "user_agent": scrub_secret_text(request.headers.get("user-agent", ""))[:512],
         **capture,
@@ -268,9 +276,13 @@ _CAPTURE_REQUEST_SCHEMA = _inline_json_schema(CaptureRequest.model_json_schema()
         }
     },
 )
-async def capture(request: Request, background_tasks: BackgroundTasks) -> CaptureResponse:
+async def capture(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    user: CurrentUser,
+) -> CaptureResponse:
     payload = await _validated_payload(request)
     event_id = str(uuid4())
-    event = _build_event(payload, request, event_id)
+    event = _build_event(payload, request, event_id, user_id=user["id"])
     background_tasks.add_task(dispatch_capture, event)
     return CaptureResponse(event_id=event_id)

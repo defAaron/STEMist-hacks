@@ -41,7 +41,12 @@ SQLITE_BUSY_RETRIES = env_int("SQLITE_BUSY_RETRIES", default=3)
 # Rate limiting (in-memory; per client IP per route)
 RATE_LIMIT_CAPTURE_PER_MINUTE = env_int("RATE_LIMIT_CAPTURE_PER_MINUTE", default=30)
 RATE_LIMIT_SIMULATE_PER_MINUTE = env_int("RATE_LIMIT_SIMULATE_PER_MINUTE", default=10)
+RATE_LIMIT_AUTH_PER_MINUTE = env_int("RATE_LIMIT_AUTH_PER_MINUTE", default=20)
 RATE_LIMIT_WINDOW_SECONDS = env_int("RATE_LIMIT_WINDOW_SECONDS", default=60)
+
+# Auth sessions
+SESSION_TTL_DAYS = env_int("SESSION_TTL_DAYS", default=7)
+PASSWORD_MIN_LENGTH = env_int("PASSWORD_MIN_LENGTH", default=8)
 
 # Security and failover
 FORCE_HTTPS = env_bool("FORCE_HTTPS", default=False)

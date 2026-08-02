@@ -7,7 +7,9 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { Parallax } from "@/components/landing/parallax";
 import { ProductVisual } from "@/components/landing/product-visual";
+import { Reveal } from "@/components/landing/reveal";
 import { BrandMark } from "@/components/shared/brand-mark";
 import { EthicsFooter } from "@/components/shared/ethics-footer";
 import {
@@ -129,8 +131,12 @@ export default function HomePage() {
       {/* —— Hero (above the fold) —— */}
       <header className="relative isolate overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,_#FDF6D8_0%,_transparent_50%)]" />
-          <div className="soft-drift absolute -right-24 top-0 size-[32rem] rounded-full bg-honey/35 blur-3xl" />
+          <Parallax speed={36} className="absolute inset-0">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,_#FDF6D8_0%,_transparent_50%)]" />
+          </Parallax>
+          <Parallax speed={52} className="absolute -right-24 top-0">
+            <div className="soft-drift size-[32rem] rounded-full bg-honey/35 blur-3xl" />
+          </Parallax>
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-background to-transparent" />
         </div>
 
@@ -144,12 +150,15 @@ export default function HomePage() {
               <Button variant="ghost" size="sm" asChild className="hidden md:inline-flex">
                 <Link href="#pricing">Access</Link>
               </Button>
+              <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
+                <Link href="/login">Log in</Link>
+              </Button>
               <Button
                 size="sm"
                 className="bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/35"
                 asChild
               >
-                <Link href="/dashboard">Open ops dashboard</Link>
+                <Link href="/signup">Create account</Link>
               </Button>
             </nav>
           </div>
@@ -173,18 +182,20 @@ export default function HomePage() {
                 className="bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/40"
                 asChild
               >
-                <Link href="/dashboard">
-                  Open ops dashboard
+                <Link href="/signup">
+                  Create account
                   <ArrowRight data-icon="inline-end" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/decoy/portal">Start free trial</Link>
+                <Link href="/login?next=%2Fdashboard">Log in</Link>
               </Button>
             </div>
           </div>
 
-          <ProductVisual className="fade-rise w-full lg:translate-y-2" />
+          <Parallax speed={-18} className="w-full">
+            <ProductVisual className="fade-rise w-full lg:translate-y-2" />
+          </Parallax>
         </section>
       </header>
 
@@ -195,9 +206,11 @@ export default function HomePage() {
           className="border-y border-border/70 bg-surface/60"
         >
           <div className="mx-auto max-w-6xl px-page py-8">
-            <p className="text-center text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
-              Built for classrooms & clubs running authorized drills
-            </p>
+            <Reveal>
+              <p className="text-center text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
+                Built for classrooms & clubs running authorized drills
+              </p>
+            </Reveal>
           </div>
         </section>
 
@@ -207,15 +220,17 @@ export default function HomePage() {
           className="border-y border-border/70 bg-surface/50 py-16 sm:py-20"
         >
           <div className="mx-auto max-w-6xl px-page">
-            <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-              How it works
-            </h2>
-            <p className="mt-2 max-w-xl text-muted-foreground">
-              Three steps from decoy link to school-ready brief.
-            </p>
+            <Reveal>
+              <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+                How it works
+              </h2>
+              <p className="mt-2 max-w-xl text-muted-foreground">
+                Three steps from decoy link to school-ready brief.
+              </p>
+            </Reveal>
             <ol className="mt-10 grid gap-10 sm:grid-cols-3">
               {STEPS.map((step, index) => (
-                <li key={step.title} className="space-y-3">
+                <Reveal key={step.title} as="li" delayMs={index * 90} className="space-y-3">
                   <span className="font-heading text-sm font-semibold text-ring">
                     Step {index + 1}
                   </span>
@@ -225,7 +240,7 @@ export default function HomePage() {
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     {step.body}
                   </p>
-                </li>
+                </Reveal>
               ))}
             </ol>
           </div>
@@ -233,15 +248,22 @@ export default function HomePage() {
 
         {/* —— Features —— */}
         <section className="mx-auto max-w-6xl px-page py-16 sm:py-20">
-          <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-            Features that map to real outcomes
-          </h2>
-          <p className="mt-2 max-w-xl text-muted-foreground">
-            Each capability exists to trap, teach, or brief — nothing decorative.
-          </p>
+          <Reveal>
+            <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+              Features that map to real outcomes
+            </h2>
+            <p className="mt-2 max-w-xl text-muted-foreground">
+              Each capability exists to trap, teach, or brief — nothing decorative.
+            </p>
+          </Reveal>
           <ul className="mt-12 grid gap-12 md:grid-cols-2">
             {FEATURES.map((feature, index) => (
-              <li key={feature.title} className="grid gap-4 sm:grid-cols-[auto_1fr] sm:gap-6">
+              <Reveal
+                key={feature.title}
+                as="li"
+                delayMs={(index % 2) * 80}
+                className="grid gap-4 sm:grid-cols-[auto_1fr] sm:gap-6"
+              >
                 <div
                   aria-hidden
                   className={cn(
@@ -272,28 +294,36 @@ export default function HomePage() {
                     {feature.detail}
                   </p>
                 </div>
-              </li>
+              </Reveal>
             ))}
           </ul>
         </section>
 
         {/* —— Stats —— */}
-        <section className="border-y border-border/70 bg-ink text-primary-foreground">
-          <div className="mx-auto grid max-w-6xl gap-8 px-page py-14 sm:grid-cols-2 lg:grid-cols-4">
-            {STATS.map((stat) => (
-              <div key={stat.label} className="space-y-1">
+        <section className="relative overflow-hidden border-y border-border/70 bg-ink text-primary-foreground">
+          <Parallax
+            speed={28}
+            className="pointer-events-none absolute inset-0 -z-0 opacity-40"
+            aria-hidden
+          >
+            <div className="absolute -left-16 top-1/2 size-64 -translate-y-1/2 rounded-full bg-honey/25 blur-3xl" />
+            <div className="absolute -right-20 top-0 size-72 rounded-full bg-honey/15 blur-3xl" />
+          </Parallax>
+          <div className="relative mx-auto grid max-w-6xl gap-8 px-page py-14 sm:grid-cols-2 lg:grid-cols-4">
+            {STATS.map((stat, index) => (
+              <Reveal key={stat.label} delayMs={index * 70} className="space-y-1">
                 <p className="font-heading text-3xl font-semibold tracking-tight text-honey sm:text-4xl">
                   {stat.value}
                 </p>
                 <p className="text-sm text-primary-foreground/70">{stat.label}</p>
-              </div>
+              </Reveal>
             ))}
           </div>
         </section>
 
         {/* —— Access / use cases —— */}
         <section id="pricing" className="mx-auto max-w-6xl px-page py-16 sm:py-20">
-          <div className="max-w-2xl">
+          <Reveal className="max-w-2xl">
             <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
               Completely free to use
             </h2>
@@ -302,11 +332,13 @@ export default function HomePage() {
               use case that matches your role and open the ops dashboard to get
               started.
             </p>
-          </div>
+          </Reveal>
           <ul className="mt-10 grid gap-4 lg:grid-cols-3">
-            {USE_CASES.map((useCase) => (
-              <li
+            {USE_CASES.map((useCase, index) => (
+              <Reveal
                 key={useCase.name}
+                as="li"
+                delayMs={index * 90}
                 className="flex flex-col rounded-2xl border border-border/80 bg-surface/80 p-6"
               >
                 <h3 className="font-heading text-xl font-semibold">{useCase.name}</h3>
@@ -322,56 +354,61 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-              </li>
+              </Reveal>
             ))}
           </ul>
-          <div className="mt-10 flex justify-center">
+          <Reveal delayMs={200} className="mt-10 flex justify-center">
             <Button
               size="lg"
               className="bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/40"
               asChild
             >
-              <Link href="/dashboard">
-                Open ops dashboard
+              <Link href="/signup">
+                Create account
                 <ArrowRight data-icon="inline-end" />
               </Link>
             </Button>
-          </div>
+          </Reveal>
         </section>
 
         {/* —— FAQ —— */}
         <section className="border-t border-border/70 bg-surface/50 py-16 sm:py-20">
           <div className="mx-auto grid max-w-6xl gap-10 px-page lg:grid-cols-[0.8fr_1.2fr]">
-            <div>
+            <Reveal>
               <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
                 FAQ
               </h2>
               <p className="mt-2 text-muted-foreground">
                 Common questions before you spring a trap.
               </p>
-            </div>
-            <Accordion type="single" collapsible className="w-full">
-              {FAQS.map((item) => (
-                <AccordionItem key={item.q} value={item.q}>
-                  <AccordionTrigger className="text-left text-base">
-                    {item.q}
-                  </AccordionTrigger>
-                  <AccordionContent className="text-muted-foreground">
-                    {item.a}
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
+            </Reveal>
+            <Reveal delayMs={100}>
+              <Accordion type="single" collapsible className="w-full">
+                {FAQS.map((item) => (
+                  <AccordionItem key={item.q} value={item.q}>
+                    <AccordionTrigger className="text-left text-base">
+                      {item.q}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-muted-foreground">
+                      {item.a}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </Reveal>
           </div>
         </section>
 
         {/* —— Final CTA —— */}
         <section className="relative overflow-hidden px-page py-20">
-          <div
+          <Parallax
+            speed={40}
+            className="pointer-events-none absolute inset-0 -z-10"
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_center,_#F9E8A2_0%,_transparent_55%)] opacity-70"
-          />
-          <div className="mx-auto max-w-3xl text-center">
+          >
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_#F9E8A2_0%,_transparent_55%)] opacity-70" />
+          </Parallax>
+          <Reveal className="mx-auto max-w-3xl text-center">
             <h2 className="font-heading text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
               Ready to spring the trap?
             </h2>
@@ -385,16 +422,16 @@ export default function HomePage() {
                 className="bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/40"
                 asChild
               >
-                <Link href="/dashboard">
-                  Open ops dashboard
+                <Link href="/signup">
+                  Create account
                   <ArrowRight data-icon="inline-end" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
-                <Link href="/decoy/portal">Start free trial</Link>
+                <Link href="/login?next=%2Fdashboard">Log in</Link>
               </Button>
             </div>
-          </div>
+          </Reveal>
         </section>
       </main>
 

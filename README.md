@@ -35,7 +35,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000). Dashboard at `/dashboard`; portal decoy at `/decoy/portal`.
+Open [http://localhost:3000](http://localhost:3000). Create an account at `/signup`, then use `/dashboard` and `/decoy/portal` — each tester’s captures stay private.
 
 ---
 

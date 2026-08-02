@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { DashboardGated } from "@/components/dashboard/dashboard-gated";
 
 export const metadata: Metadata = {
   title: "Ops dashboard",
@@ -9,5 +9,5 @@ export const metadata: Metadata = {
 };
 
 export default function DashboardPage() {
-  return <DashboardShell />;
+  return <DashboardGated />;
 }

@@ -95,6 +95,17 @@ export interface HealthResponse {
   version: string;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: AuthUser;
+}
+
 export class ApiError extends Error {
   status: number;
 

@@ -44,6 +44,15 @@ _None blocking the demo path as of last dry run._
 | **Fix** | Use this file + [features.md](./features.md) + [architecture.md](./architecture.md); start sessions with “review docs/errors.md and docs/features.md” |
 | **Lesson** | Context architecture beats longer prompts (see video) |
 
+### E-004 — Functions are not valid as a child of Client Components (`/dashboard`)
+
+| Field | Detail |
+|-------|--------|
+| **Symptom** | Runtime Error on `/dashboard`: `children={function children}` during `stringify` |
+| **Cause** | Server Component `dashboard/page.tsx` passed an `AuthGate` render prop `(user) => …` into a Client Component — functions are not serializable across the RSC boundary |
+| **Fix** | Keep the render prop inside a client wrapper (`DashboardGated`); server page only renders `<DashboardGated />` |
+| **Do not** | Pass functions/render props from Server Components into Client Components |
+
 ---
 
 ## Approaches that did NOT work
@@ -100,6 +109,11 @@ _None blocking the demo path as of last dry run._
 - `use-capture-submit.ts` always shows “Unable to verify” even on successful capture.
 - **Not a bug** — honeypot should not confirm credentials to the attacker persona.
 
+### P-006 — Next.js App Router + Client Component render props
+
+- Render props / function `children` are fine **within** the client tree.
+- They cannot be authored in a Server Component and passed into a `"use client"` parent (RSC serialization fails at `stringify`).
+
 ---
 
 ## Lessons learned (general)
@@ -116,6 +130,7 @@ _None blocking the demo path as of last dry run._
 | Date | Entry |
 |------|-------|
 | 2026-08-02 | Initial file from video framework + codebase / terminal audit |
+| 2026-08-02 | E-004 / P-006 — fixed `/dashboard` AuthGate render prop crossing RSC boundary via `DashboardGated` |
 
 ---
 

@@ -82,9 +82,15 @@ def test_post_simulate_runs_shared_pipeline_as_replay(monkeypatch: Any) -> None:
 
     monkeypatch.setattr(routes_simulate, "run_pipeline", fake_run_pipeline)
 
+    user = {
+        "id": "user-test-1",
+        "email": "tester@example.test",
+        "created_at": "2026-08-02T00:00:00.000Z",
+    }
     response = asyncio.run(
         routes_simulate.simulate(
-            routes_simulate.SimulateRequest(scenario_id="SC-2")
+            routes_simulate.SimulateRequest(scenario_id="SC-2"),
+            user,
         )
     )
 
@@ -92,6 +98,7 @@ def test_post_simulate_runs_shared_pipeline_as_replay(monkeypatch: Any) -> None:
     assert response["source"] == "replay"
     assert response["technique"] == "urgency_pii_scam"
     assert calls[0][0]["scenario_id"] == "SC-2"
+    assert calls[0][0]["user_id"] == "user-test-1"
     assert "expected_technique" not in calls[0][0]
     assert "cached_brief_victim" not in calls[0][0]
     assert calls[0][1] == "replay"
@@ -103,12 +110,18 @@ def test_post_simulate_rejects_unknown_and_malformed_ids(monkeypatch: Any) -> No
 
     monkeypatch.setattr(routes_simulate, "run_pipeline", should_not_run)
 
+    user = {
+        "id": "user-test-1",
+        "email": "tester@example.test",
+        "created_at": "2026-08-02T00:00:00.000Z",
+    }
     try:
         asyncio.run(
             routes_simulate.simulate(
                 routes_simulate.SimulateRequest(
                     scenario_id="../../etc/passwd"
-                )
+                ),
+                user,
             )
         )
     except HTTPException as exc:

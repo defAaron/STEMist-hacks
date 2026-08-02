@@ -13,12 +13,14 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from app.api.routes_auth import router as auth_router
 from app.api.routes_capture import router as capture_router
 from app.api.routes_events import router as events_router
 from app.api.routes_export import router as export_router
 from app.api.routes_simulate import router as simulate_router
 from app.config import (
     FORCE_HTTPS,
+    RATE_LIMIT_AUTH_PER_MINUTE,
     RATE_LIMIT_CAPTURE_PER_MINUTE,
     RATE_LIMIT_SIMULATE_PER_MINUTE,
     RATE_LIMIT_WINDOW_SECONDS,
@@ -117,6 +119,8 @@ app.add_middleware(
     limits={
         "/capture": RATE_LIMIT_CAPTURE_PER_MINUTE,
         "/simulate": RATE_LIMIT_SIMULATE_PER_MINUTE,
+        "/auth/login": RATE_LIMIT_AUTH_PER_MINUTE,
+        "/auth/signup": RATE_LIMIT_AUTH_PER_MINUTE,
     },
     window_seconds=RATE_LIMIT_WINDOW_SECONDS,
     trust_proxy=TRUST_PROXY,
@@ -129,9 +133,10 @@ if origins:
         allow_origins=origins,
         allow_credentials=False,
         allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-Simulate-Token"],
+        allow_headers=["Content-Type", "Authorization", "X-Simulate-Token"],
     )
 
+app.include_router(auth_router)
 app.include_router(capture_router)
 app.include_router(simulate_router)
 app.include_router(events_router)
