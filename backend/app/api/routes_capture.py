@@ -6,7 +6,6 @@ import asyncio
 import copy
 import inspect
 import json
-import os
 import re
 from datetime import datetime, timezone
 from importlib import import_module
@@ -17,6 +16,7 @@ from uuid import uuid4
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
+from app.config import TRUST_PROXY
 from app.services.redact import (
     normalize_field_name,
     redact_secrets,
@@ -160,7 +160,7 @@ async def _validated_payload(request: Request) -> CaptureRequest:
 
 
 def _client_ip(request: Request) -> str:
-    if os.getenv("TRUST_PROXY", "").lower() in {"1", "true", "yes"}:
+    if TRUST_PROXY:
         forwarded = request.headers.get("x-forwarded-for", "")
         if forwarded:
             return forwarded.split(",", 1)[0].strip()[:64]

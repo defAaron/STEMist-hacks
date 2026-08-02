@@ -13,14 +13,17 @@ import math
 import os
 import sqlite3
 import threading
+import time
 import uuid
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from contextlib import closing
 from datetime import date, datetime, timezone
 from decimal import Decimal
 from enum import Enum
 from pathlib import Path
 from typing import Any
+
+from app.config import SQLITE_BUSY_RETRIES, SQLITE_TIMEOUT_SECONDS
 
 
 TECHNIQUES = frozenset(
@@ -323,14 +326,30 @@ class EventStore:
     def _new_connection(self) -> sqlite3.Connection:
         connection = sqlite3.connect(
             self.database,
-            timeout=5.0,
+            timeout=SQLITE_TIMEOUT_SECONDS,
             uri=self._uri,
             check_same_thread=False,
         )
         connection.row_factory = sqlite3.Row
         connection.execute("PRAGMA foreign_keys = ON")
-        connection.execute("PRAGMA busy_timeout = 5000")
+        busy_ms = max(int(SQLITE_TIMEOUT_SECONDS * 1000), 1000)
+        connection.execute(f"PRAGMA busy_timeout = {busy_ms}")
         return connection
+
+    @staticmethod
+    def _retry_on_busy(operation: Callable[[], Any]) -> Any:
+        last_error: sqlite3.OperationalError | None = None
+        for attempt in range(max(SQLITE_BUSY_RETRIES, 1)):
+            try:
+                return operation()
+            except sqlite3.OperationalError as exc:
+                if "locked" not in str(exc).lower():
+                    raise
+                last_error = exc
+                if attempt + 1 < SQLITE_BUSY_RETRIES:
+                    time.sleep(0.05 * (attempt + 1))
+        assert last_error is not None
+        raise last_error
 
     def initialize(self) -> None:
         """Create the schema and add columns missing from an older MVP DB."""
@@ -389,8 +408,11 @@ class EventStore:
         values = [self._encode(column, prepared[column]) for column in columns]
 
         with self._lock, closing(self._new_connection()) as connection:
-            connection.execute(sql, values)
-            connection.commit()
+            def write() -> None:
+                connection.execute(sql, values)
+                connection.commit()
+
+            self._retry_on_busy(write)
         result = self.get_event(prepared["id"])
         assert result is not None
         return result
@@ -414,10 +436,14 @@ class EventStore:
         values.append(str(event_id))
 
         with self._lock, closing(self._new_connection()) as connection:
-            cursor = connection.execute(
-                f"UPDATE events SET {assignments} WHERE id = ?", values
-            )
-            connection.commit()
+            def write() -> sqlite3.Cursor:
+                cursor = connection.execute(
+                    f"UPDATE events SET {assignments} WHERE id = ?", values
+                )
+                connection.commit()
+                return cursor
+
+            cursor = self._retry_on_busy(write)
             if cursor.rowcount == 0:
                 return None
         return self.get_event(str(event_id))

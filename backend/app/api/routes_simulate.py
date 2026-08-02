@@ -13,7 +13,7 @@ from typing import Any
 from fastapi import APIRouter, Depends, Header, HTTPException, status
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.pipeline.runner import run_pipeline
+from app.pipeline.runner import PipelineExecutionError, run_pipeline
 
 async def require_simulate_token(
     x_simulate_token: str | None = Header(default=None),
@@ -137,5 +137,11 @@ async def simulate(request: SimulateRequest) -> dict[str, Any]:
     capture = {
         key: value for key, value in scenario.items() if key in _RUNNER_FIELDS
     }
-    event = await run_pipeline(capture, source="replay")
+    try:
+        event = await run_pipeline(capture, source="replay")
+    except PipelineExecutionError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Scenario replay failed",
+        ) from exc
     return event

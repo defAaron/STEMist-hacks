@@ -18,6 +18,8 @@ services:
         value: "true"
       - key: BRIEF_FAILOVER_CACHE
         value: "true"
+      - key: FORCE_HTTPS
+        value: "true"
     disk:
       name: honeydesk-data
       mountPath: /var/data

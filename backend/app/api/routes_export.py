@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
+from app.api.validators import validate_event_id
 from app.services.stix_export import event_to_stix_bundle
 
 router = APIRouter(tags=["export"])
@@ -29,6 +30,7 @@ async def _get_event(event_id: str) -> Any:
 @router.get("/export/stix/{event_id}")
 async def export_stix(event_id: str) -> Response:
     """Return a STIX 2.1 JSON attachment for one stored event."""
+    validate_event_id(event_id)
     event = await _get_event(event_id)
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")

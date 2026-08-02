@@ -7,6 +7,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query
 
+from app.api.validators import validate_event_id
 from app.models import db
 
 router = APIRouter(tags=["events"])
@@ -26,6 +27,7 @@ async def events(
 async def event_detail(event_id: str) -> dict[str, object]:
     """Return a complete event, including its brief and pipeline steps."""
 
+    validate_event_id(event_id)
     event = await asyncio.to_thread(db.get_event, event_id)
     if event is None:
         raise HTTPException(status_code=404, detail="Event not found")

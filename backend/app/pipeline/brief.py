@@ -7,6 +7,9 @@ import os
 from pathlib import Path
 from typing import Any, Mapping
 from urllib import request
+from urllib.parse import urlsplit
+
+from app.config import BRIEF_FAILOVER_CACHE, LLM_TIMEOUT_SECONDS
 
 MAX_VICTIM_WORDS = 120
 _SCENARIO_DIR = Path(__file__).resolve().parents[1] / "scenarios"
@@ -142,10 +145,28 @@ def _cached_brief(
     return {"victim": victim, "it": None, "actions": actions, "brief_source": "cache"}
 
 
+def _network_allowed(explicit: bool | None) -> bool:
+    if explicit is not None:
+        return explicit
+    if BRIEF_FAILOVER_CACHE:
+        return False
+    return bool(os.getenv("OPENAI_API_KEY"))
+
+
+def _https_base_url(base_url: str) -> str | None:
+    parts = urlsplit(base_url.strip())
+    if parts.scheme != "https" or not parts.netloc:
+        return None
+    return base_url.rstrip("/")
+
+
 def _llm_brief(
     event: Mapping[str, Any], api_key: str, model: str, base_url: str
 ) -> dict[str, Any] | None:
     """Call an OpenAI-compatible endpoint only after explicit opt-in."""
+    safe_base = _https_base_url(base_url)
+    if safe_base is None:
+        return None
     technique = str(event.get("technique") or "unknown")
     severity = str(event.get("severity") or "medium")
     decoy_id = str(event.get("decoy_id") or "unknown")
@@ -177,7 +198,7 @@ def _llm_brief(
             "messages": [{"role": "user", "content": prompt}],
         }
     ).encode()
-    endpoint = base_url.rstrip("/") + "/chat/completions"
+    endpoint = safe_base + "/chat/completions"
     req = request.Request(
         endpoint,
         data=body,
@@ -185,7 +206,7 @@ def _llm_brief(
         method="POST",
     )
     try:
-        with request.urlopen(req, timeout=4) as response:
+        with request.urlopen(req, timeout=LLM_TIMEOUT_SECONDS) as response:
             envelope = json.loads(response.read())
         content = envelope["choices"][0]["message"]["content"]
         result = json.loads(content)
@@ -202,7 +223,7 @@ def generate_brief(
     event: Mapping[str, Any] | Any,
     scenario: Mapping[str, Any] | Any | None = None,
     *,
-    allow_network: bool = False,
+    allow_network: bool | None = None,
     api_key: str | None = None,
     model: str | None = None,
     base_url: str | None = None,
@@ -219,7 +240,7 @@ def generate_brief(
         return cached
 
     key = api_key or os.getenv("OPENAI_API_KEY")
-    if allow_network and key:
+    if _network_allowed(allow_network) and key:
         generated = _llm_brief(
             event_data,
             key,
