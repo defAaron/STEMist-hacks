@@ -89,6 +89,12 @@ _None blocking the demo path as of last dry run._
 
 - Persist SQLite to mounted disk in `render.yaml`; ephemeral filesystem loses events on restart.
 
+### P-007 — Next.js `NEXT_PUBLIC_*` on Render
+
+- `NEXT_PUBLIC_API_URL` and `NEXT_PUBLIC_SIMULATE_TOKEN` are baked in at **build** time.
+- Changing them in the dashboard without a web rebuild leaves the old values in the client bundle.
+- After renaming the API service hostname, update the web env and **redeploy/rebuild** `honeydesk-web`.
+
 ### P-002 — CORS for local dev
 
 - Backend needs `CORS_ORIGINS=http://localhost:3000` when frontend runs on `:3000`.

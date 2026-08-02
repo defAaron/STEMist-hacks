@@ -14,7 +14,7 @@ High-level map of the monorepo. See [TRD.md](./TRD.md) for full technical specs.
 ```
 STEMist-hacks/
 ├── README.md              # Project overview and quick start
-├── render.yaml            # Render.com deployment (API)
+├── render.yaml            # Render.com Blueprint (API + frontend)
 ├── docs/                  # Product, technical, and dev-context docs
 ├── backend/               # FastAPI API + pipeline + SQLite
 │   ├── app/
@@ -100,3 +100,14 @@ cd frontend && npm run dev
 ```
 
 See [backend/README.md](../backend/README.md) and [frontend/README.md](../frontend/README.md) for full setup.
+
+---
+
+## Deployment (Render)
+
+| Service | Runtime | Notes |
+|---------|---------|-------|
+| `honeydesk-api` | Docker (`backend/Dockerfile`) | SQLite on `/var/data` disk; `APP_ENV=production` |
+| `honeydesk-web` | Node (`frontend/`) | `NEXT_PUBLIC_API_URL` + simulate token from API |
+
+Blueprint file: [`render.yaml`](../render.yaml). After first deploy, confirm CORS origin matches the web hostname and run the 90-second demo path once on the public URL.

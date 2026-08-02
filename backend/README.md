@@ -68,29 +68,42 @@ writable by the image's non-root user.
 
 ## Deploy to Render
 
-The repository-root `render.yaml` defines a Docker web service and a 1 GB
-persistent disk. In Render, create a new Blueprint from this repository, enter
-the frontend's exact origin when prompted for `CORS_ORIGINS`, and add optional
-LLM variables in the service dashboard. Render generates `SIMULATE_TOKEN`;
-copy it only to trusted replay clients.
+The repository-root `render.yaml` Blueprint defines:
 
-The Blueprint uses Render's paid `starter` service because persistent disks
-are not available on free web services. For a disposable demo, remove the
-`disk` block, change the plan, and accept that SQLite data will be lost on
-restart or redeploy.
+1. **honeydesk-api** — Docker FastAPI service + 1 GB disk at `/var/data`
+2. **honeydesk-web** — Node Next.js service (`frontend/`) wired to the API
+
+In Render: **New → Blueprint →** select this repo. Both services use the paid
+`starter` plan (persistent disk for SQLite; avoids free-tier spin-down during
+demo). Render generates `SIMULATE_TOKEN` on the API and injects the same value
+into the web service as `NEXT_PUBLIC_SIMULATE_TOKEN`.
+
+Default hostnames assumed by the Blueprint:
+
+| Service | URL |
+| --- | --- |
+| API | `https://honeydesk-api.onrender.com` |
+| Web | `https://honeydesk-web.onrender.com` |
+
+If you rename a service, update `CORS_ORIGINS` (API) and `NEXT_PUBLIC_API_URL`
+(web) to match, then redeploy the web service so the public URL is rebuilt into
+the client bundle. Optional: add `OPENAI_API_KEY` on the API service for live
+briefs (cached failover remains on by default).
 
 After deployment:
 
 ```bash
 export API_URL=https://honeydesk-api.onrender.com
+export WEB_URL=https://honeydesk-web.onrender.com
 curl --fail "$API_URL/health"
-curl --fail "$API_URL/events?limit=1"
+curl --fail -o /dev/null -w "%{http_code}\n" "$WEB_URL/"
 ```
 
-Expected readiness is an HTTP 200 from `/health`. Render should not route
-traffic until that check succeeds. A failing check usually means
-`app.main:app` could not import, the process did not bind to `PORT`, or the
-database directory is not writable.
+Expected readiness is HTTP 200 from `/health` and the web root. Render should
+not route API traffic until the health check succeeds. A failing check usually
+means `app.main:app` could not import, the process did not bind to `PORT`, or
+the database directory is not writable. Unauthenticated `GET /events` returning
+401 is expected (auth required).
 
 ## Acceptable use
 

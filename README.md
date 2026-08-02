@@ -46,9 +46,28 @@ Open [http://localhost:3000](http://localhost:3000). Create an account at `/sign
 | [`backend/`](backend/) | FastAPI API, capture pipeline, SQLite store, tests |
 | [`frontend/`](frontend/) | Next.js App Router UI (landing, dashboard, decoys) |
 | [`docs/`](docs/) | PRD, TRD, architecture, feature tracker, error log |
-| [`render.yaml`](render.yaml) | Render.com deployment config for the API |
+| [`render.yaml`](render.yaml) | Render.com Blueprint (API + frontend) |
 
 See [docs/architecture.md](docs/architecture.md) for the full layout and data-flow diagram.
+
+---
+
+## Deploy (Render)
+
+1. Push this repo to GitHub (if not already).
+2. In [Render](https://dashboard.render.com): **New → Blueprint** → select the repo.
+3. Apply the Blueprint (`honeydesk-api` + `honeydesk-web`, both `starter`).
+4. Wait for both services to go live, then open `https://honeydesk-web.onrender.com`.
+5. Smoke path: **Signup → Dashboard → Decoy portal submit → Replay SC-1 → Export STIX**.
+
+```bash
+curl --fail https://honeydesk-api.onrender.com/health
+```
+
+If you rename services, update `CORS_ORIGINS` / `NEXT_PUBLIC_API_URL` in
+`render.yaml` (or the dashboard) and redeploy the web service so the new API
+URL is baked into the client. Optional LLM: set `OPENAI_API_KEY` on the API
+service; cached briefs work without it.
 
 ---
 

@@ -1,3 +1,12 @@
+# HoneyDesk — Render Blueprint (API + frontend)
+# Create via Render Dashboard → New → Blueprint → this repo.
+# After first deploy: open the web URL, sign up, run SC-1 replay once.
+#
+# Default public hostnames (used for CORS / API URL wiring):
+#   https://honeydesk-api.onrender.com
+#   https://honeydesk-web.onrender.com
+# If you rename a service, update CORS_ORIGINS and NEXT_PUBLIC_API_URL to match.
+
 services:
   - type: web
     name: honeydesk-api
@@ -12,8 +21,10 @@ services:
         value: production
       - key: DATABASE_URL
         value: sqlite:////var/data/honeydesk.db
+      # Exact frontend origin(s), comma-separated, no trailing slash.
+      # Includes localhost so local FE can still hit a deployed API during debugging.
       - key: CORS_ORIGINS
-        sync: false
+        value: https://honeydesk-web.onrender.com,http://localhost:3000,http://127.0.0.1:3000
       - key: SIMULATE_TOKEN
         generateValue: true
       - key: REQUIRE_SIMULATE_TOKEN
@@ -30,3 +41,27 @@ services:
       name: honeydesk-data
       mountPath: /var/data
       sizeGB: 1
+
+  - type: web
+    name: honeydesk-web
+    runtime: node
+    plan: starter
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_VERSION
+        value: "20.18.0"
+      - key: NODE_ENV
+        value: production
+      # Baked into the client bundle at build time — must match the API hostname.
+      - key: NEXT_PUBLIC_API_URL
+        value: https://honeydesk-api.onrender.com
+      # Shared with the API so dashboard Replay buttons send the correct header.
+      - key: NEXT_PUBLIC_SIMULATE_TOKEN
+        fromService:
+          name: honeydesk-api
+          type: web
+          envVarKey: SIMULATE_TOKEN

@@ -24,6 +24,20 @@ npm run dev
 
 Requires the API on `NEXT_PUBLIC_API_URL` (default `http://127.0.0.1:8000`) with CORS allowing `http://localhost:3000`. Set `NEXT_PUBLIC_SIMULATE_TOKEN` to match backend `SIMULATE_TOKEN`.
 
+## Deploy to Render
+
+The root `render.yaml` includes `honeydesk-web` (`rootDir: frontend`). It builds
+with `npm ci && npm run build` and starts with `npm start` (binds `0.0.0.0`;
+Render injects `PORT`).
+
+`NEXT_PUBLIC_*` values are **build-time** — after changing `NEXT_PUBLIC_API_URL`
+or the simulate token, trigger a web redeploy/rebuild. The Blueprint sets:
+
+- `NEXT_PUBLIC_API_URL=https://honeydesk-api.onrender.com`
+- `NEXT_PUBLIC_SIMULATE_TOKEN` ← copied from the API service’s `SIMULATE_TOKEN`
+
+Smoke check: open the web URL → `/signup` → `/dashboard` → Replay SC-1.
+
 ## Design system (summary)
 
 - **Accent:** `#F9E8A2` (honey) for highlights, selected rows, technique chips — never body text on white

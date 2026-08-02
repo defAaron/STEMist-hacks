@@ -54,9 +54,8 @@
 
 | Feature | Status | Blocker / next step |
 |---------|--------|---------------------|
-| Render deploy (API) | `render.yaml` exists | Verify prod dry run + env vars |
-| Frontend deploy | Not configured | Add Render/static host or monolith fallback |
-| Demo video | Not recorded | 3 dry runs then 3–5 min Devpost recording |
+| Render deploy (API + web) | Blueprint ready (`render.yaml`) | Create Blueprint in Render dashboard; smoke signup → portal → replay → export |
+| Demo video | Not recorded | 3 dry runs on deployed URL (localhost backup) then 3–5 min Devpost recording |
 
 ---
 
@@ -91,6 +90,7 @@
 | 2026-08-02 | Initial tracker from codebase audit + PRD/BUILDPLAN |
 | 2026-08-02 | Moved to `docs/`; root README added |
 | 2026-08-02 | Per-user email/password auth + full event isolation |
+| 2026-08-02 | Render Blueprint: API + Next.js web; deploy docs in root README |
 
 ---
 
