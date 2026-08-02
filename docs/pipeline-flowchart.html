@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HoneyDesk — Analysis Pipeline</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Open+Sans:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f7f6f2;
+        --fg: #1c1917;
+        --muted: #57534e;
+        --surface: #fffcf7;
+        --border: #e7e3da;
+        --honey: #f9e8a2;
+        --ink: #292524;
+        --line: #c4beb3;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        background:
+          radial-gradient(ellipse 80% 50% at 50% -10%, #fff8e0 0%, transparent 55%),
+          radial-gradient(ellipse 60% 40% at 100% 100%, #efece4 0%, transparent 50%),
+          var(--bg);
+        color: var(--fg);
+        font-family: "Open Sans", system-ui, sans-serif;
+      }
+
+      .slide {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1.25rem, 3vw, 2.5rem);
+        gap: clamp(1rem, 2.5vh, 1.75rem);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        font-family: Montserrat, sans-serif;
+        font-weight: 700;
+        font-size: clamp(1.1rem, 2vw, 1.35rem);
+        letter-spacing: -0.02em;
+      }
+
+      .brand-dot {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 999px;
+        background: var(--honey);
+        box-shadow: 0 0 0 1px rgba(41, 37, 36, 0.15);
+      }
+
+      h1 {
+        margin: 0;
+        font-family: Montserrat, sans-serif;
+        font-size: clamp(1.6rem, 3.4vw, 2.35rem);
+        font-weight: 700;
+        letter-spacing: -0.03em;
+        text-align: center;
+      }
+
+      .subtitle {
+        margin: -0.35rem 0 0;
+        color: var(--muted);
+        font-size: clamp(0.9rem, 1.6vw, 1.05rem);
+        text-align: center;
+        max-width: 36rem;
+      }
+
+      .flow {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: min(920px, 100%);
+        gap: 0;
+      }
+
+      .arrow {
+        width: 2px;
+        height: clamp(0.7rem, 1.8vh, 1.15rem);
+        background: var(--line);
+        position: relative;
+      }
+
+      .arrow::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: -1px;
+        width: 8px;
+        height: 8px;
+        border-right: 2px solid var(--line);
+        border-bottom: 2px solid var(--line);
+        transform: translateX(-50%) rotate(45deg);
+      }
+
+      .sources {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
+        width: 100%;
+      }
+
+      .source {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1rem;
+        padding: clamp(0.85rem, 1.8vw, 1.15rem) clamp(1rem, 2vw, 1.35rem);
+        text-align: center;
+        box-shadow: 0 1px 0 rgba(28, 25, 23, 0.04);
+      }
+
+      .source .label {
+        font-family: Montserrat, sans-serif;
+        font-weight: 700;
+        font-size: clamp(0.95rem, 1.7vw, 1.1rem);
+        letter-spacing: -0.02em;
+      }
+
+      .source .hint {
+        margin-top: 0.25rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+      }
+
+      .or {
+        font-family: Montserrat, sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .merge {
+        width: min(100%, 420px);
+        height: 28px;
+        margin-top: 0.15rem;
+        position: relative;
+      }
+
+      .merge svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+      }
+
+      .step {
+        width: min(100%, 520px);
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 0.9rem;
+        align-items: start;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 1.1rem;
+        padding: clamp(0.9rem, 1.8vw, 1.2rem) clamp(1rem, 2vw, 1.35rem);
+        box-shadow: 0 1px 0 rgba(28, 25, 23, 0.04);
+      }
+
+      .step.accent {
+        background: linear-gradient(180deg, #fffdf5 0%, var(--surface) 100%);
+        border-color: #e8d98a;
+        box-shadow: 0 0 0 1px rgba(249, 232, 162, 0.35);
+      }
+
+      .num {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--ink);
+        color: #fafaf9;
+        font-family: Montserrat, sans-serif;
+        font-size: 0.85rem;
+        font-weight: 700;
+        flex-shrink: 0;
+      }
+
+      .step.accent .num {
+        background: var(--honey);
+        color: var(--ink);
+        box-shadow: inset 0 0 0 1px rgba(41, 37, 36, 0.12);
+      }
+
+      .step h2 {
+        margin: 0;
+        font-family: Montserrat, sans-serif;
+        font-size: clamp(1.05rem, 2vw, 1.25rem);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+      }
+
+      .step p {
+        margin: 0.2rem 0 0;
+        color: var(--muted);
+        font-size: clamp(0.82rem, 1.4vw, 0.95rem);
+        line-height: 1.4;
+      }
+
+      .outputs {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: stretch;
+        gap: clamp(0.75rem, 2vw, 1.25rem);
+        width: min(100%, 640px);
+      }
+
+      .output {
+        background: var(--ink);
+        color: #fafaf9;
+        border-radius: 1.1rem;
+        padding: clamp(0.9rem, 1.8vw, 1.15rem) clamp(1rem, 2vw, 1.25rem);
+        text-align: center;
+      }
+
+      .output.secondary {
+        background: var(--surface);
+        color: var(--fg);
+        border: 1px solid var(--border);
+      }
+
+      .output .label {
+        font-family: Montserrat, sans-serif;
+        font-weight: 700;
+        font-size: clamp(0.95rem, 1.7vw, 1.1rem);
+        letter-spacing: -0.02em;
+      }
+
+      .output .hint {
+        margin-top: 0.3rem;
+        font-size: 0.8rem;
+        opacity: 0.75;
+      }
+
+      .output.secondary .hint {
+        color: var(--muted);
+        opacity: 1;
+      }
+
+      .then {
+        align-self: center;
+        font-family: Montserrat, sans-serif;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .rule {
+        margin-top: 0.25rem;
+        padding: 0.65rem 1.1rem;
+        border-radius: 999px;
+        background: rgba(249, 232, 162, 0.55);
+        border: 1px solid #e8d98a;
+        font-family: Montserrat, sans-serif;
+        font-size: clamp(0.78rem, 1.4vw, 0.9rem);
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-align: center;
+      }
+
+      .hint-key {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        color: var(--muted);
+        font-size: 0.72rem;
+        opacity: 0.7;
+      }
+
+      @media (max-width: 640px) {
+        .sources,
+        .outputs {
+          grid-template-columns: 1fr;
+        }
+
+        .or,
+        .then,
+        .merge {
+          display: none;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .step,
+        .source,
+        .output {
+          animation: rise 0.55s ease both;
+        }
+
+        .sources .source:nth-child(1) {
+          animation-delay: 0.05s;
+        }
+        .sources .source:nth-child(3) {
+          animation-delay: 0.12s;
+        }
+        .flow > .step:nth-of-type(1) {
+          animation-delay: 0.2s;
+        }
+        .flow > .step:nth-of-type(2) {
+          animation-delay: 0.28s;
+        }
+        .flow > .step:nth-of-type(3) {
+          animation-delay: 0.36s;
+        }
+        .flow > .step:nth-of-type(4) {
+          animation-delay: 0.44s;
+        }
+        .outputs {
+          animation: rise 0.55s ease both;
+          animation-delay: 0.52s;
+        }
+      }
+
+      @keyframes rise {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="slide">
+      <div class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        HoneyDesk
+      </div>
+      <h1>Analysis pipeline</h1>
+      <p class="subtitle">
+        Same path for a live decoy submit and a one-click replay.
+      </p>
+
+      <div class="flow">
+        <div class="sources">
+          <div class="source">
+            <div class="label">Decoy submit</div>
+            <div class="hint">Student springs a practice trap</div>
+          </div>
+          <div class="or">or</div>
+          <div class="source">
+            <div class="label">Replay</div>
+            <div class="hint">SC-1 · SC-2 · SC-3 simulate</div>
+          </div>
+        </div>
+
+        <div class="merge" aria-hidden="true">
+          <svg viewBox="0 0 420 28" preserveAspectRatio="none">
+            <path
+              d="M70 0 V10 H210 V28 M350 0 V10 H210"
+              fill="none"
+              stroke="#c4beb3"
+              stroke-width="2"
+            />
+          </svg>
+        </div>
+
+        <div class="step">
+          <div class="num">1</div>
+          <div>
+            <h2>Capture</h2>
+            <p>Record the interaction · redact secrets at the door</p>
+          </div>
+        </div>
+        <div class="arrow" aria-hidden="true"></div>
+
+        <div class="step">
+          <div class="num">2</div>
+          <div>
+            <h2>Classify</h2>
+            <p>Rules → technique + severity + reasons</p>
+          </div>
+        </div>
+        <div class="arrow" aria-hidden="true"></div>
+
+        <div class="step">
+          <div class="num">3</div>
+          <div>
+            <h2>Enrich</h2>
+            <p>Add context — geo, user-agent, and related signals</p>
+          </div>
+        </div>
+        <div class="arrow" aria-hidden="true"></div>
+
+        <div class="step accent">
+          <div class="num">4</div>
+          <div>
+            <h2>Brief</h2>
+            <p>AI or cache → plain-English actions for the student</p>
+          </div>
+        </div>
+        <div class="arrow" aria-hidden="true"></div>
+
+        <div class="outputs">
+          <div class="output">
+            <div class="label">Dashboard</div>
+            <div class="hint">Live feed · pipeline · victim brief</div>
+          </div>
+          <div class="then">then</div>
+          <div class="output secondary">
+            <div class="label">STIX export</div>
+            <div class="hint">Share with school IT</div>
+          </div>
+        </div>
+      </div>
+
+      <p class="rule">Rules classify · AI explains</p>
+    </main>
+
+    <p class="hint-key">Open this file → press F11 for fullscreen</p>
+  </body>
+</html>

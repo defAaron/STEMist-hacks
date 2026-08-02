@@ -8,6 +8,8 @@
 | [features.md](./features.md) | Living feature tracker (AI dev context) |
 | [errors.md](./errors.md) | Bugs, lessons learned, dead-end approaches |
 | [BUILDPLAN.md](./BUILDPLAN.md) | Sprint build plan (local only, gitignored) |
+| [PRESENTATION.md](./PRESENTATION.md) | Judge pitch script — problem, solution, demo, tech, impact |
+| [pipeline-flowchart.html](./pipeline-flowchart.html) | Fullscreen pipeline slide for the demo video |
 
 Package-specific setup guides live in [backend/README.md](../backend/README.md) and [frontend/README.md](../frontend/README.md).
 
