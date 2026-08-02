@@ -1,6 +1,9 @@
 # Cursor IDE (local MCP/editor config)
 .cursor/
 
+# Local-only planning (agent + owner; not for GitHub)
+docs/BUILDPLAN.md
+
 # Environment files (secrets) — never commit
 .env
 .env.*
