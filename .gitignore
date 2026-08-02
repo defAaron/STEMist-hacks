@@ -1,3 +1,6 @@
+# Cursor IDE (local MCP/editor config)
+.cursor/
+
 # Environment files (secrets) — never commit
 .env
 .env.*
