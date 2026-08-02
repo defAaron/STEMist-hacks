@@ -1,0 +1,29 @@
+{
+  "scenario_id": "SC-2",
+  "name": "Scholarship Confirm",
+  "decoy_id": "scholarship",
+  "path": "/confirm-award",
+  "ip": "198.51.100.27",
+  "user_agent": "Mozilla/5.0 (HoneyDesk Synthetic Replay)",
+  "geo": {
+    "lat": 41.88,
+    "lon": -87.63,
+    "label": "Synthetic demo location"
+  },
+  "fields_present": [
+    "full_name",
+    "school_email",
+    "ssn",
+    "bank",
+    "routing"
+  ],
+  "password_entered": false,
+  "email_domain": "example.edu",
+  "meta": {
+    "dwell_ms": 4800,
+    "campaign": "seed-urgent-scholarship"
+  },
+  "expected_technique": "urgency_pii_scam",
+  "expected_severity": "critical",
+  "cached_brief_victim": "This simulated scholarship form used urgency to request identity and banking details. Legitimate aid programs do not demand an SSN or bank routing information through a surprise link. If you shared real details on a page like this, tell a trusted adult, contact the bank using its official number, freeze your credit if appropriate, and report the message to your school."
+}

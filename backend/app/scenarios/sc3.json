@@ -1,0 +1,26 @@
+{
+  "scenario_id": "SC-3",
+  "name": "Discord Verify",
+  "decoy_id": "discord",
+  "path": "/verify",
+  "ip": "192.0.2.83",
+  "user_agent": "Mozilla/5.0 (HoneyDesk Synthetic Replay)",
+  "geo": {
+    "lat": 34.05,
+    "lon": -118.24,
+    "label": "Synthetic demo location"
+  },
+  "fields_present": [
+    "discord_username",
+    "verify_button"
+  ],
+  "password_entered": false,
+  "email_domain": null,
+  "meta": {
+    "dwell_ms": 2100,
+    "campaign": "seed-social-verify"
+  },
+  "expected_technique": "social_verify",
+  "expected_severity": "high",
+  "cached_brief_victim": "This simulated Discord verification page tried to make an account takeover look like a routine server check. Real moderators should not ask you to paste tokens, scan unexpected codes, or sign in through random links. If you interacted with a page like this, change your Discord password from the official app, enable multi-factor authentication, review authorized apps, and tell a moderator."
+}

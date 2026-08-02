@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: honeydesk-api
+    runtime: docker
+    plan: starter
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    healthCheckPath: /health
+    autoDeployTrigger: commit
+    envVars:
+      - key: DATABASE_URL
+        value: sqlite:////var/data/honeydesk.db
+      - key: CORS_ORIGINS
+        sync: false
+      - key: SIMULATE_TOKEN
+        generateValue: true
+      - key: TRUST_PROXY
+        value: "true"
+      - key: BRIEF_FAILOVER_CACHE
+        value: "true"
+    disk:
+      name: honeydesk-data
+      mountPath: /var/data
+      sizeGB: 1

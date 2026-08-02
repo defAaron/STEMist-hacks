@@ -1,0 +1,26 @@
+{
+  "scenario_id": "SC-1",
+  "name": "Aid Portal Login",
+  "decoy_id": "portal",
+  "path": "/login",
+  "ip": "203.0.113.50",
+  "user_agent": "Mozilla/5.0 (HoneyDesk Synthetic Replay)",
+  "geo": {
+    "lat": 40.71,
+    "lon": -74.0,
+    "label": "Synthetic demo location"
+  },
+  "fields_present": [
+    "email",
+    "password"
+  ],
+  "password_entered": true,
+  "email_domain": "example.edu",
+  "meta": {
+    "dwell_ms": 9200,
+    "campaign": "seed"
+  },
+  "expected_technique": "credential_harvest",
+  "expected_severity": "high",
+  "cached_brief_victim": "This simulated page copied a student aid portal to collect a school email and password. If you entered a real password on a page like this, change it from the school's official website, turn on multi-factor authentication, and report the message to school IT or a trusted adult. Do not reuse that password elsewhere."
+}
