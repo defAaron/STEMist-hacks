@@ -96,6 +96,11 @@ _None blocking the demo path as of last dry run._
 - Changing them in the dashboard without a web rebuild leaves the old values in the client bundle.
 - After renaming the API service hostname, update the web env and **redeploy/rebuild** `honeydesk-web`.
 
+### P-008 — `Cannot find module '@tailwindcss/postcss'` on Render build
+
+- Cause: service `NODE_ENV=production` makes `npm ci` skip `devDependencies`.
+- Fix: `buildCommand: npm ci --include=dev && npm run build` in `render.yaml`.
+
 ### P-002 — CORS for local dev
 
 - Backend needs `CORS_ORIGINS=http://localhost:3000` when frontend runs on `:3000`.

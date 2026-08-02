@@ -46,7 +46,9 @@ services:
     runtime: node
     plan: free
     rootDir: frontend
-    buildCommand: npm ci && npm run build
+    # --include=dev: NODE_ENV=production would otherwise skip devDependencies
+    # (@tailwindcss/postcss, typescript) needed by `next build`.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /
     autoDeployTrigger: commit
