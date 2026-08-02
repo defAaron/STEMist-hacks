@@ -1,5 +1,10 @@
-# Cursor IDE (local MCP/editor config)
+# IDE / editor
 .cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
 
 # Local-only planning (agent + owner; not for GitHub)
 docs/BUILDPLAN.md
@@ -13,7 +18,34 @@ docs/BUILDPLAN.md
 # Node
 node_modules/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+
+# Backend local data
+backend/data/*.db
+backend/data/*.db-journal
+
 # Next.js
 frontend/.next/
 frontend/out/
 frontend/.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+Thumbs.db
