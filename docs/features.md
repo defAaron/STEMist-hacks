@@ -22,8 +22,10 @@
 | Capture → Classify → Enrich → Brief pipeline | Rules classifier; demo geo; cached/LLM/fallback briefs |
 | Redaction layer | Never stores plaintext passwords / SSN |
 | Seeded scenarios | `sc1.json`, `sc2.json`, `sc3.json` with cached victim briefs |
-| Security middleware | Rate limits (incl. auth), timeouts, optional simulate token |
-| Test suite | 43 tests (auth isolation, capture, classify, pipeline, simulate, STIX, DB) |
+| Security middleware | Rate limits (incl. auth), timeouts, security headers, optional simulate token |
+| Production lockdown | OpenAPI `/docs` off by default in `APP_ENV=production`; `SIMULATE_TOKEN` required |
+| Tenant-scoped reads | `list_events` / `get_stats` always require `user_id` (app-level RLS) |
+| Test suite | Auth isolation, capture safety, security hardening, classify, pipeline, STIX, DB |
 
 ### Frontend (Next.js App Router)
 
