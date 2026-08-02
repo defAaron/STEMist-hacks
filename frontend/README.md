@@ -9,8 +9,18 @@ Next.js App Router UI for the HoneyDesk defensive honeypot.
 | `/` | Product landing | — |
 | `/dashboard` | Ops desk (feed, pipeline, brief, replay, export) | `GET /events`, `GET /events/{id}`, `GET /stats`, `POST /simulate`, `GET /export/stix/{id}` |
 | `/decoy/portal` | P0 credential-harvest trap | `POST /capture` |
+| `/decoy/canvas` | LMS-style login harvest | `POST /capture` |
+| `/decoy/wifi` | Campus Wi‑Fi captive portal | `POST /capture` |
+| `/decoy/sso` | Campus365 SSO login | `POST /capture` |
+| `/decoy/bank` | Student bank security alert | `POST /capture` |
+| `/decoy/zoom` | Class meeting join login | `POST /capture` |
 | `/decoy/scholarship` | P1 urgency/PII trap | `POST /capture` |
+| `/decoy/internship` | Fake internship / stipend onboarding | `POST /capture` |
+| `/decoy/package` | Parcel hold / redelivery fee | `POST /capture` |
+| `/decoy/textbook` | Textbook buyback refund | `POST /capture` |
+| `/decoy/fafsa` | FAFSA correction hold | `POST /capture` |
 | `/decoy/discord` | P1 social-verify trap | `POST /capture` |
+| `/decoy/instagram` | Instagram account verify | `POST /capture` |
 
 Live updates use **1s polling** of `GET /events` (backend has no `/stream` SSE yet).
 

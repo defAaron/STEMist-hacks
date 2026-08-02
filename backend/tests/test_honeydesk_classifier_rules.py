@@ -105,6 +105,51 @@ def test_bot_probe_uses_user_agent_dwell_and_source_metadata() -> None:
     assert len(result["reasons"]) == 3
 
 
+def test_practice_login_decoys_are_credential_harvest() -> None:
+    for decoy_id in ("canvas", "wifi", "sso", "bank", "zoom"):
+        result = classify(
+            {
+                "decoy_id": decoy_id,
+                "path": f"/decoy/{decoy_id}/login",
+                "fields_present": ["email", "password"],
+                "password_entered": True,
+                "user_agent": "Mozilla/5.0",
+                "source": "live",
+            }
+        )
+        assert result["technique"] == "credential_harvest"
+        assert result["severity"] == "high"
+
+
+def test_practice_urgency_decoys_are_urgency_pii_scam() -> None:
+    for decoy_id in ("internship", "package", "textbook", "fafsa"):
+        result = classify(
+            {
+                "decoy_id": decoy_id,
+                "path": f"/decoy/{decoy_id}/confirm-now",
+                "fields_present": ["full_name", "school_email", "ssn", "bank"],
+                "user_agent": "Mozilla/5.0",
+                "source": "live",
+            }
+        )
+        assert result["technique"] == "urgency_pii_scam"
+        assert result["severity"] == "critical"
+
+
+def test_practice_instagram_is_social_verify() -> None:
+    result = classify(
+        {
+            "decoy_id": "instagram",
+            "path": "/decoy/instagram/verify",
+            "fields_present": ["username", "token"],
+            "token_entered": True,
+            "user_agent": "Mozilla/5.0",
+            "source": "live",
+        }
+    )
+    assert result["technique"] == "social_verify"
+
+
 def test_unknown_decoy_defaults_to_medium() -> None:
     result = classify(
         {

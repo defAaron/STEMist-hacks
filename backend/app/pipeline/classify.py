@@ -53,12 +53,47 @@ class ClassificationResult:
 _TOKEN_RE = re.compile(r"[^a-z0-9]+")
 _MAX_COLLECTION_ITEMS = 128
 
-_PORTAL_DECOYS = frozenset({"portal", "student_portal", "aid_portal", "login_portal"})
+_PORTAL_DECOYS = frozenset(
+    {
+        "portal",
+        "student_portal",
+        "aid_portal",
+        "login_portal",
+        "canvas",
+        "lms",
+        "wifi",
+        "campus_wifi",
+        "sso",
+        "bank",
+        "zoom",
+        "meetlink",
+    }
+)
 _SCHOLARSHIP_DECOYS = frozenset(
-    {"scholarship", "scholarship_form", "aid_form", "financial_aid"}
+    {
+        "scholarship",
+        "scholarship_form",
+        "aid_form",
+        "financial_aid",
+        "internship",
+        "job_offer",
+        "remote_internship",
+        "package",
+        "parcel",
+        "textbook",
+        "buyback",
+        "fafsa",
+    }
 )
 _SOCIAL_DECOYS = frozenset(
-    {"discord", "discord_verify", "social_verify", "verify_landing"}
+    {
+        "discord",
+        "discord_verify",
+        "social_verify",
+        "verify_landing",
+        "instagram",
+        "ig_verify",
+    }
 )
 _PASSWORD_FIELDS = frozenset(
     {"password", "passcode", "passwd", "school_password", "account_password"}

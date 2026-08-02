@@ -22,7 +22,21 @@ _SAFE_TECHNIQUES = {
     "unknown",
 }
 _SAFE_SEVERITIES = {"low", "medium", "high", "critical"}
-_SAFE_DECOYS = {"portal", "scholarship", "discord"}
+_SAFE_DECOYS = {
+    "portal",
+    "scholarship",
+    "discord",
+    "canvas",
+    "wifi",
+    "internship",
+    "sso",
+    "bank",
+    "zoom",
+    "package",
+    "textbook",
+    "fafsa",
+    "instagram",
+}
 _SAFE_SOURCES = {"live", "simulate", "replay"}
 _SAFE_TARGETS = {
     "school_email",

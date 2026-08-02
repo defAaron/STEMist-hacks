@@ -35,8 +35,19 @@
 | Signup / login | `/signup`, `/login` — session token in `sessionStorage` |
 | Ops dashboard | `/dashboard` — gated; feed, stats, detail, pipeline, replay, export |
 | Portal decoy (P0) | `/decoy/portal` — gated credential harvest trap |
+| Canvas decoy | `/decoy/canvas` — LMS-style login harvest |
+| Campus Wi‑Fi decoy | `/decoy/wifi` — captive-portal login harvest |
+| Campus365 SSO decoy | `/decoy/sso` — school SSO login harvest |
+| Student bank decoy | `/decoy/bank` — security-alert login harvest |
+| Class meeting decoy | `/decoy/zoom` — meeting join login harvest |
 | Scholarship decoy (P1) | `/decoy/scholarship` — urgency / PII form |
+| Internship decoy | `/decoy/internship` — fake job offer + SSN/bank |
+| Parcel hold decoy | `/decoy/package` — delivery fee + PII |
+| Textbook buyback decoy | `/decoy/textbook` — refund urgency + bank/SSN |
+| FAFSA correction decoy | `/decoy/fafsa` — aid-hold identity form |
 | Discord decoy (P1) | `/decoy/discord` — social verify landing |
+| Instagram verify decoy | `/decoy/instagram` — social account verify |
+| Practice decoys panel | Dashboard list with copy/open links for student drills |
 | Live updates | Poll `/events` + `/stats` every 1s (Bearer auth) |
 | Victim brief card | Plain-English brief per event |
 | Replay controls | One-click SC-1 / SC-2 / SC-3 |
@@ -68,7 +79,7 @@
 | F-P1-03 | Leaderboard strip | US-13, FR-46 |
 | F-P1-04 | Raw JSON vs brief compare toggle | FR-63 |
 | F-P1-05 | SSE live feed (`GET /stream`) | US-01 (optional; polling OK for MVP) |
-| F-P1-06 | Dashboard links to scholarship + Discord decoys | UX polish |
+| F-P1-06 | ~~Dashboard links to scholarship + Discord decoys~~ | Done — practice decoys panel |
 | F-P1-07 | Ethics footer on decoy layout | FR-62 consistency |
 
 ---
@@ -91,6 +102,8 @@
 | 2026-08-02 | Moved to `docs/`; root README added |
 | 2026-08-02 | Per-user email/password auth + full event isolation |
 | 2026-08-02 | Render Blueprint: API + Next.js web; deploy docs in root README |
+| 2026-08-02 | Added Canvas, Wi‑Fi, internship practice decoys + dashboard share panel |
+| 2026-08-02 | Added 7 more practice decoys (SSO, bank, Zoom, package, textbook, FAFSA, Instagram) |
 
 ---
 

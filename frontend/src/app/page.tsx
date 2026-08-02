@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   {
     title: "Deploy a decoy",
-    body: "Open a fake aid portal, scholarship form, or Discord verify page built for authorized training.",
+    body: "Share practice traps — aid portal, Canvas login, Wi‑Fi, internship offer, scholarship, or Discord verify.",
   },
   {
     title: "Watch the spring",

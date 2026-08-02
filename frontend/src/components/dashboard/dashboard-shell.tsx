@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ExternalLink } from "lucide-react";
 import { useState } from "react";
@@ -9,6 +8,7 @@ import { BrandMark } from "@/components/shared/brand-mark";
 import { EthicsFooter } from "@/components/shared/ethics-footer";
 import { DetailPanel } from "@/components/dashboard/detail-panel";
 import { EventFeed } from "@/components/dashboard/event-feed";
+import { PracticeDecoysPanel } from "@/components/dashboard/practice-decoys-panel";
 import { ReplayControls } from "@/components/dashboard/replay-controls";
 import { StatsBar } from "@/components/dashboard/stats-bar";
 import { Button } from "@/components/ui/button";
@@ -59,10 +59,10 @@ export function DashboardShell({ user }: { user: AuthUser }) {
                 {user.email}
               </span>
               <Button variant="ghost" size="sm" asChild>
-                <Link href="/decoy/portal">
-                  Open portal decoy
+                <a href="#practice-decoys">
+                  Practice decoys
                   <ExternalLink data-icon="inline-end" />
-                </Link>
+                </a>
               </Button>
               <Button
                 variant="outline"
@@ -81,7 +81,9 @@ export function DashboardShell({ user }: { user: AuthUser }) {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-7xl flex-1 px-page py-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 space-y-4 px-page py-6">
+        <PracticeDecoysPanel />
+
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <Card className="bg-surface/90">
             <CardHeader className="border-b">

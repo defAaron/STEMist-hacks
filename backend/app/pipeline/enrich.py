@@ -48,12 +48,25 @@ def derive_data_targeted(
         "routing_number",
     }:
         targeted.append("bank_account")
+    if fields & {"phone", "mobile", "full_name", "name"}:
+        targeted.append("personal_information")
 
-    discord_signal = decoy == "discord" or bool(
-        fields & {"discord", "discord_username", "verify", "verification_code", "token"}
+    social_signal = decoy in {"discord", "instagram"} or bool(
+        fields
+        & {
+            "discord",
+            "discord_username",
+            "username",
+            "verify",
+            "verification_code",
+            "token",
+        }
     )
-    if discord_signal:
-        targeted.extend(("discord_account", "session_token_risk"))
+    if social_signal:
+        if decoy == "instagram":
+            targeted.extend(("personal_information", "session_token_risk"))
+        else:
+            targeted.extend(("discord_account", "session_token_risk"))
 
     return list(dict.fromkeys(targeted))
 
