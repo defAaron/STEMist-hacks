@@ -499,22 +499,28 @@ class EventStore:
         *,
         limit: int = 50,
         offset: int = 0,
-        user_id: str | None = None,
+        user_id: str,
         source: str | None = None,
         technique: str | None = None,
         severity: str | None = None,
         scenario_id: str | None = None,
         pipeline_status: str | None = None,
     ) -> list[dict[str, Any]]:
-        """Return newest events with optional exact-match filters."""
+        """Return newest events for one tenant with optional exact-match filters.
+
+        ``user_id`` is required so the events table is never listed globally.
+        """
 
         if isinstance(limit, bool) or not 1 <= int(limit) <= 1000:
             raise ValueError("limit must be between 1 and 1000")
         if isinstance(offset, bool) or int(offset) < 0:
             raise ValueError("offset must be non-negative")
+        tenant_id = str(user_id).strip()
+        if not tenant_id:
+            raise ValueError("user_id is required for tenant-scoped queries")
 
         filters = {
-            "user_id": user_id,
+            "user_id": tenant_id,
             "source": source,
             "technique": technique,
             "severity": severity,
@@ -527,7 +533,7 @@ class EventStore:
             if value is not None:
                 clauses.append(f"{column} = ?")
                 values.append(value)
-        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        where = f" WHERE {' AND '.join(clauses)}"
         values.extend((int(limit), int(offset)))
 
         with closing(self._new_connection()) as connection:
@@ -538,20 +544,19 @@ class EventStore:
             ).fetchall()
         return [self._decode_row(row) for row in rows]
 
-    def get_stats(
-        self, *, user_id: str | None = None, source: str | None = None
-    ) -> dict[str, Any]:
-        """Return aggregate counts, including the API contract's core fields."""
+    def get_stats(self, *, user_id: str, source: str | None = None) -> dict[str, Any]:
+        """Return aggregate counts for one tenant (never a global dump)."""
 
-        clauses: list[str] = []
-        params: list[Any] = []
-        if user_id is not None:
-            clauses.append("user_id = ?")
-            params.append(str(user_id))
+        tenant_id = str(user_id).strip()
+        if not tenant_id:
+            raise ValueError("user_id is required for tenant-scoped queries")
+
+        clauses: list[str] = ["user_id = ?"]
+        params: list[Any] = [tenant_id]
         if source is not None:
             clauses.append("source = ?")
             params.append(source)
-        where = f" WHERE {' AND '.join(clauses)}" if clauses else ""
+        where = f" WHERE {' AND '.join(clauses)}"
         query_params: tuple[Any, ...] = tuple(params)
         with closing(self._new_connection()) as connection:
             summary = connection.execute(
@@ -931,7 +936,7 @@ def list_events(
     database: str | os.PathLike[str] | None = None,
     limit: int = 50,
     offset: int = 0,
-    user_id: str | None = None,
+    user_id: str,
     source: str | None = None,
     technique: str | None = None,
     severity: str | None = None,
@@ -953,7 +958,7 @@ def list_events(
 def get_stats(
     *,
     database: str | os.PathLike[str] | None = None,
-    user_id: str | None = None,
+    user_id: str,
     source: str | None = None,
 ) -> dict[str, Any]:
     return _get_store(database).get_stats(user_id=user_id, source=source)

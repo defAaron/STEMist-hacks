@@ -19,18 +19,21 @@ from app.api.routes_events import router as events_router
 from app.api.routes_export import router as export_router
 from app.api.routes_simulate import router as simulate_router
 from app.config import (
+    EXPOSE_API_DOCS,
     FORCE_HTTPS,
     RATE_LIMIT_AUTH_PER_MINUTE,
     RATE_LIMIT_CAPTURE_PER_MINUTE,
     RATE_LIMIT_SIMULATE_PER_MINUTE,
     RATE_LIMIT_WINDOW_SECONDS,
     REQUEST_TIMEOUT_SECONDS,
+    REQUIRE_SIMULATE_TOKEN,
     TRUST_PROXY,
 )
 from app.middleware.security import (
     HttpsRedirectMiddleware,
     RateLimitMiddleware,
     RequestTimeoutMiddleware,
+    SecurityHeadersMiddleware,
 )
 from app.models.db import init_db
 from app.pipeline.runner import PipelineExecutionError
@@ -68,10 +71,20 @@ def _cors_origins(raw: str | None) -> list[str]:
     return origins
 
 
+def _assert_runtime_security() -> None:
+    """Fail closed on insecure production posture before serving traffic."""
+
+    if REQUIRE_SIMULATE_TOKEN and not (os.getenv("SIMULATE_TOKEN") or "").strip():
+        raise RuntimeError(
+            "SIMULATE_TOKEN must be set when REQUIRE_SIMULATE_TOKEN/production is enabled"
+        )
+
+
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     """Initialize the configured SQLite store before accepting traffic."""
 
+    _assert_runtime_security()
     store = await asyncio.to_thread(init_db)
     try:
         yield
@@ -85,6 +98,9 @@ app = FastAPI(
     title="HoneyDesk API",
     version=VERSION,
     lifespan=lifespan,
+    docs_url="/docs" if EXPOSE_API_DOCS else None,
+    redoc_url="/redoc" if EXPOSE_API_DOCS else None,
+    openapi_url="/openapi.json" if EXPOSE_API_DOCS else None,
 )
 
 
@@ -100,12 +116,15 @@ async def pipeline_execution_error_handler(
 
 @app.exception_handler(Exception)
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    # Never echo exception text or stack traces to clients.
     logger.exception("Unhandled error on %s %s", request.method, request.url.path)
     return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
     )
 
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 if FORCE_HTTPS:
     app.add_middleware(HttpsRedirectMiddleware)

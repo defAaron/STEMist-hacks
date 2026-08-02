@@ -40,9 +40,18 @@ async def signup(body: AuthCredentials) -> AuthResponse:
     try:
         result = auth_service.signup(body.email, body.password)
     except ValueError as exc:
+        message = str(exc)
+        # Only return known validation copy — never raw internal exceptions.
+        if message.startswith("password must be at least") or message in {
+            "invalid email",
+            "password is too long",
+        }:
+            detail = message
+        else:
+            detail = "Invalid signup details"
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)
-        ) from exc
+            status_code=status.HTTP_400_BAD_REQUEST, detail=detail
+        ) from None
     except LookupError:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,

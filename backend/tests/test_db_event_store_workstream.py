@@ -111,8 +111,10 @@ def test_secret_keys_are_never_persisted(tmp_path):
 
 def test_list_filters_ordering_and_stats(tmp_path):
     store = EventStore(tmp_path / "stats.db")
+    tenant = "user-alice"
     first = store.insert_event(
         decoy_id="portal",
+        user_id=tenant,
         created_at="2026-08-02T12:00:00Z",
         source="live",
         technique="credential_harvest",
@@ -120,21 +122,30 @@ def test_list_filters_ordering_and_stats(tmp_path):
     )
     second = store.insert_event(
         decoy_id="scholarship",
+        user_id=tenant,
         created_at="2026-08-02T13:00:00Z",
         source="replay",
         scenario_id="SC-2",
         technique="urgency_pii_scam",
         severity="critical",
     )
+    store.insert_event(
+        decoy_id="portal",
+        user_id="user-bob",
+        created_at="2026-08-02T14:00:00Z",
+        source="live",
+        technique="bot_probe",
+        severity="low",
+    )
 
-    assert [item["id"] for item in store.list_events()] == [
+    assert [item["id"] for item in store.list_events(user_id=tenant)] == [
         second["id"],
         first["id"],
     ]
-    assert store.list_events(source="live")[0]["id"] == first["id"]
-    assert store.list_events(scenario_id="SC-2")[0]["id"] == second["id"]
+    assert store.list_events(user_id=tenant, source="live")[0]["id"] == first["id"]
+    assert store.list_events(user_id=tenant, scenario_id="SC-2")[0]["id"] == second["id"]
 
-    stats = store.get_stats()
+    stats = store.get_stats(user_id=tenant)
     assert stats["attacks_caught"] == 2
     assert stats["by_technique"] == {
         "credential_harvest": 1,
@@ -143,16 +154,22 @@ def test_list_filters_ordering_and_stats(tmp_path):
     assert stats["by_severity"] == {"critical": 1, "high": 1}
     assert stats["by_source"] == {"live": 1, "replay": 1}
     assert stats["last_event_at"] == second["created_at"]
-    assert store.get_stats(source="live")["attacks_caught"] == 1
+    assert store.get_stats(user_id=tenant, source="live")["attacks_caught"] == 1
+    with pytest.raises(ValueError, match="user_id is required"):
+        store.list_events(user_id=" ")
+    with pytest.raises(ValueError, match="user_id is required"):
+        store.get_stats(user_id="")
 
 
 def test_module_api_and_safe_json_types(tmp_path):
     database = tmp_path / "module.db"
     assert init_db(database).database == str(database)
+    tenant = "user-module"
     event = insert_event(
         {
             "id": uuid.uuid4(),
             "decoy_id": "discord",
+            "user_id": tenant,
             "geo": {
                 "observed": datetime(2026, 8, 2, tzinfo=timezone.utc),
             },
@@ -169,10 +186,10 @@ def test_module_api_and_safe_json_types(tmp_path):
     )
     assert updated is not None
     append_pipeline_step(event["id"], "brief", database=database)
-    assert list_events(database=database, technique="social_verify")[0]["id"] == event[
-        "id"
-    ]
-    assert get_stats(database=database)["attacks_caught"] == 1
+    assert list_events(
+        database=database, user_id=tenant, technique="social_verify"
+    )[0]["id"] == event["id"]
+    assert get_stats(database=database, user_id=tenant)["attacks_caught"] == 1
     assert '"values":[1,2,3]' in safe_json_dumps({"values": {3, 1, 2}})
 
 
@@ -185,9 +202,9 @@ def test_validation_and_in_memory_store():
     with pytest.raises(ValueError, match="source"):
         store.insert_event(decoy_id="portal", source="external")
     with pytest.raises(ValueError, match="limit"):
-        store.list_events(limit=0)
+        store.list_events(user_id="user-1", limit=0)
 
-    created = store.insert_event(decoy_id="portal")
+    created = store.insert_event(decoy_id="portal", user_id="user-1")
     assert store.get_event(created["id"]) is not None
     store.close()
 

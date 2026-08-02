@@ -52,3 +52,11 @@ PASSWORD_MIN_LENGTH = env_int("PASSWORD_MIN_LENGTH", default=8)
 FORCE_HTTPS = env_bool("FORCE_HTTPS", default=False)
 TRUST_PROXY = env_bool("TRUST_PROXY", default=False)
 BRIEF_FAILOVER_CACHE = env_bool("BRIEF_FAILOVER_CACHE", default=True)
+
+# Deployment posture: production disables OpenAPI UIs and requires SIMULATE_TOKEN.
+APP_ENV = (os.getenv("APP_ENV") or "development").strip().lower()
+IS_PRODUCTION = APP_ENV in {"production", "prod"}
+EXPOSE_API_DOCS = env_bool("EXPOSE_API_DOCS", default=not IS_PRODUCTION)
+REQUIRE_SIMULATE_TOKEN = env_bool(
+    "REQUIRE_SIMULATE_TOKEN", default=IS_PRODUCTION
+)
