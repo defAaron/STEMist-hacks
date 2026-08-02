@@ -5,7 +5,6 @@ import {
   Radio,
   ShieldCheck,
   Sparkles,
-  Star,
 } from "lucide-react";
 
 import { ProductVisual } from "@/components/landing/product-visual";
@@ -19,35 +18,6 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const PARTNERS = [
-  "Northvale Cyber Club",
-  "STEMist Hacks",
-  "Ridge High Blue Team",
-  "Campus Aid Lab",
-  "Student SOC Saturdays",
-];
-
-const QUOTES = [
-  {
-    quote:
-      "The trap spring made phishing feel real — then the brief told me exactly what to do next.",
-    name: "Maya R.",
-    role: "11th grade · Cyber Club",
-  },
-  {
-    quote:
-      "We finally have something we can export to IT without rewriting the incident from scratch.",
-    name: "Mr. Alvarez",
-    role: "School technology coordinator",
-  },
-  {
-    quote:
-      "Replay scenarios mean the demo never depends on a random attacker showing up.",
-    name: "Judge feedback",
-    role: "Security track dry run",
-  },
-];
 
 const STEPS = [
   {
@@ -94,37 +64,28 @@ const STATS = [
   { value: "0", label: "Plaintext passwords stored" },
 ];
 
-const PLANS = [
+const USE_CASES = [
   {
     name: "Student practice",
-    price: "Free",
     blurb: "Run decoys locally and read victim briefs.",
     features: [
       "Portal decoy + dashboard",
       "Victim brief for each catch",
       "Ethics notice built in",
     ],
-    cta: "Start free trial",
-    href: "/decoy/portal",
-    highlighted: false,
   },
   {
     name: "Club demo",
-    price: "Free",
-    blurb: "The full 90-second spring judges remember.",
+    blurb: "The full 90-second spring for live judging.",
     features: [
       "Live feed + pipeline panel",
       "Replay SC-1 · SC-2 · SC-3",
       "STIX export for IT share-out",
       "Scholarship & Discord decoys",
     ],
-    cta: "Book a demo",
-    href: "/dashboard",
-    highlighted: true,
   },
   {
     name: "School IT pack",
-    price: "Free*",
     blurb: "Classroom-ready framing for blue-team clubs.",
     features: [
       "Authorized-training posture",
@@ -132,9 +93,6 @@ const PLANS = [
       "Shareable incident JSON",
       "No secret retention by design",
     ],
-    cta: "Open ops dashboard",
-    href: "/dashboard",
-    highlighted: false,
   },
 ];
 
@@ -161,7 +119,7 @@ const FAQS = [
   },
   {
     q: "Is there a paid plan?",
-    a: "This STEMist Hacks MVP is free to run locally. The tiers above describe intended classroom / club / IT use — not billing.",
+    a: "HoneyDesk is completely free to run locally. The use cases above describe intended classroom, club, and IT workflows — not billing.",
   },
 ];
 
@@ -191,7 +149,7 @@ export default function HomePage() {
                 className="bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/35"
                 asChild
               >
-                <Link href="/dashboard">Book a demo</Link>
+                <Link href="/dashboard">Open ops dashboard</Link>
               </Button>
             </nav>
           </div>
@@ -216,7 +174,7 @@ export default function HomePage() {
                 asChild
               >
                 <Link href="/dashboard">
-                  Book a demo
+                  Open ops dashboard
                   <ArrowRight data-icon="inline-end" />
                 </Link>
               </Button>
@@ -231,66 +189,15 @@ export default function HomePage() {
       </header>
 
       <main>
-        {/* —— Trust / logo bar —— */}
+        {/* —— Trust bar —— */}
         <section
-          aria-label="Trusted by student security communities"
+          aria-label="Built for authorized training"
           className="border-y border-border/70 bg-surface/60"
         >
-          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-page py-8">
+          <div className="mx-auto max-w-6xl px-page py-8">
             <p className="text-center text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
               Built for classrooms & clubs running authorized drills
             </p>
-            <ul className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3">
-              {PARTNERS.map((name) => (
-                <li
-                  key={name}
-                  className="font-heading text-sm font-semibold tracking-tight text-foreground/55 sm:text-base"
-                >
-                  {name}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-
-        {/* —— Reviews —— */}
-        <section className="mx-auto max-w-6xl px-page py-16 sm:py-20">
-          <div className="max-w-2xl">
-            <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-              Proof from the people who spring the trap
-            </h2>
-            <p className="mt-2 text-muted-foreground">
-              Early feedback from student operators and school IT personas during
-              demo dry runs.
-            </p>
-          </div>
-          <ul className="mt-10 grid gap-8 md:grid-cols-3">
-            {QUOTES.map((item) => (
-              <li key={item.name} className="space-y-4">
-                <div className="flex gap-0.5 text-ring" aria-label="5 out of 5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star key={i} className="size-3.5 fill-current" />
-                  ))}
-                </div>
-                <blockquote className="text-sm leading-relaxed text-foreground text-pretty">
-                  “{item.quote}”
-                </blockquote>
-                <footer className="text-sm">
-                  <p className="font-medium text-foreground">{item.name}</p>
-                  <p className="text-muted-foreground">{item.role}</p>
-                </footer>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-10 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-2 rounded-full bg-honey-soft px-3 py-1.5 text-honey-foreground ring-1 ring-honey/70">
-              <ShieldCheck className="size-3.5" aria-hidden />
-              Authorized training only
-            </span>
-            <span className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1.5 text-secondary-foreground">
-              <GraduationCap className="size-3.5" aria-hidden />
-              Ages 13–19 friendly copy
-            </span>
           </div>
         </section>
 
@@ -384,44 +291,28 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* —— Access / pricing tiers —— */}
+        {/* —— Access / use cases —— */}
         <section id="pricing" className="mx-auto max-w-6xl px-page py-16 sm:py-20">
           <div className="max-w-2xl">
             <h2 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
-              Choose how you run the demo
+              Completely free to use
             </h2>
             <p className="mt-2 text-muted-foreground">
-              STEMist MVP access is free. Pick the path that matches your role —
-              favorite for live judging is highlighted.
+              HoneyDesk is free to run locally — no billing, no signup. Pick the
+              use case that matches your role and open the ops dashboard to get
+              started.
             </p>
           </div>
           <ul className="mt-10 grid gap-4 lg:grid-cols-3">
-            {PLANS.map((plan) => (
+            {USE_CASES.map((useCase) => (
               <li
-                key={plan.name}
-                className={cn(
-                  "flex flex-col rounded-2xl border p-6",
-                  plan.highlighted
-                    ? "border-honey bg-honey-soft/50 honey-glow"
-                    : "border-border/80 bg-surface/80"
-                )}
+                key={useCase.name}
+                className="flex flex-col rounded-2xl border border-border/80 bg-surface/80 p-6"
               >
-                {plan.highlighted ? (
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-ring">
-                    Recommended
-                  </p>
-                ) : (
-                  <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-transparent">
-                    ·
-                  </p>
-                )}
-                <h3 className="font-heading text-xl font-semibold">{plan.name}</h3>
-                <p className="mt-2 font-heading text-3xl font-semibold tracking-tight">
-                  {plan.price}
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">{plan.blurb}</p>
+                <h3 className="font-heading text-xl font-semibold">{useCase.name}</h3>
+                <p className="mt-2 text-sm text-muted-foreground">{useCase.blurb}</p>
                 <ul className="mt-6 flex-1 space-y-2 text-sm text-foreground">
-                  {plan.features.map((feature) => (
+                  {useCase.features.map((feature) => (
                     <li key={feature} className="flex gap-2">
                       <span
                         className="mt-2 size-1.5 shrink-0 rounded-full bg-ring"
@@ -431,24 +322,21 @@ export default function HomePage() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  className={cn(
-                    "mt-8 w-full",
-                    plan.highlighted &&
-                      "bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/40"
-                  )}
-                  variant={plan.highlighted ? "default" : "outline"}
-                  asChild
-                >
-                  <Link href={plan.href}>{plan.cta}</Link>
-                </Button>
               </li>
             ))}
           </ul>
-          <p className="mt-4 text-xs text-muted-foreground">
-            * Free for this hackathon MVP. No billing integration ships with the
-            demo.
-          </p>
+          <div className="mt-10 flex justify-center">
+            <Button
+              size="lg"
+              className="bg-honey text-honey-foreground hover:bg-honey/90 ring-1 ring-ring/40"
+              asChild
+            >
+              <Link href="/dashboard">
+                Open ops dashboard
+                <ArrowRight data-icon="inline-end" />
+              </Link>
+            </Button>
+          </div>
         </section>
 
         {/* —— FAQ —— */}
@@ -498,7 +386,7 @@ export default function HomePage() {
                 asChild
               >
                 <Link href="/dashboard">
-                  Book a demo
+                  Open ops dashboard
                   <ArrowRight data-icon="inline-end" />
                 </Link>
               </Button>
