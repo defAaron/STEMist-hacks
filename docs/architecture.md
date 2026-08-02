@@ -107,7 +107,7 @@ See [backend/README.md](../backend/README.md) and [frontend/README.md](../fronte
 
 | Service | Runtime | Notes |
 |---------|---------|-------|
-| `honeydesk-api` | Docker (`backend/Dockerfile`) | SQLite on `/var/data` disk; `APP_ENV=production` |
-| `honeydesk-web` | Node (`frontend/`) | `NEXT_PUBLIC_API_URL` + simulate token from API |
+| `honeydesk-api` | Docker (`backend/Dockerfile`) | Free plan; ephemeral SQLite at `/app/data`; `APP_ENV=production` |
+| `honeydesk-web` | Node (`frontend/`) | Free plan; `NEXT_PUBLIC_API_URL` + simulate token from API |
 
-Blueprint file: [`render.yaml`](../render.yaml). After first deploy, confirm CORS origin matches the web hostname and run the 90-second demo path once on the public URL.
+Blueprint file: [`render.yaml`](../render.yaml). Free tier sleeps when idle — warm URLs before demo. After first deploy, confirm CORS origin matches the web hostname and run the 90-second path once.

@@ -54,7 +54,7 @@
 
 | Feature | Status | Blocker / next step |
 |---------|--------|---------------------|
-| Render deploy (API + web) | Blueprint ready (`render.yaml`) | Create Blueprint in Render dashboard; smoke signup → portal → replay → export |
+| Render deploy (API + web) | Free-tier Blueprint (`plan: free`, no disk) | Push + create Blueprint; warm URLs; smoke signup → portal → replay → export |
 | Demo video | Not recorded | 3 dry runs on deployed URL (localhost backup) then 3–5 min Devpost recording |
 
 ---

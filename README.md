@@ -52,17 +52,23 @@ See [docs/architecture.md](docs/architecture.md) for the full layout and data-fl
 
 ---
 
-## Deploy (Render)
+## Deploy (Render — free tier)
+
+No payment required. The Blueprint uses `plan: free` for both services.
 
 1. Push this repo to GitHub (if not already).
 2. In [Render](https://dashboard.render.com): **New → Blueprint** → select the repo.
-3. Apply the Blueprint (`honeydesk-api` + `honeydesk-web`, both `starter`).
+3. Apply the Blueprint (`honeydesk-api` + `honeydesk-web`).
 4. Wait for both services to go live, then open `https://honeydesk-web.onrender.com`.
 5. Smoke path: **Signup → Dashboard → Decoy portal submit → Replay SC-1 → Export STIX**.
 
 ```bash
 curl --fail https://honeydesk-api.onrender.com/health
 ```
+
+**Free-tier tradeoffs:** SQLite is wiped on restart/redeploy/spin-down; services
+sleep after ~15 minutes idle (first request can take 30–60s). Warm both URLs
+before a demo. Replays/signups recreate demo data instantly.
 
 If you rename services, update `CORS_ORIGINS` / `NEXT_PUBLIC_API_URL` in
 `render.yaml` (or the dashboard) and redeploy the web service so the new API

@@ -87,7 +87,8 @@ _None blocking the demo path as of last dry run._
 
 ### P-001 — FastAPI + SQLite on Render
 
-- Persist SQLite to mounted disk in `render.yaml`; ephemeral filesystem loses events on restart.
+- Free Blueprint: no disk — SQLite at `/app/data` is wiped on restart/spin-down (OK for demo; use Replay).
+- Paid path only: attach a disk + `sqlite:////var/data/honeydesk.db` (requires card).
 
 ### P-007 — Next.js `NEXT_PUBLIC_*` on Render
 

@@ -16,7 +16,7 @@ FastAPI deployment scaffold for the HoneyDesk defensive honeypot API.
 
 | Variable | Required | Example / purpose |
 | --- | --- | --- |
-| `DATABASE_URL` | Yes in deployed environments | `sqlite:////var/data/honeydesk.db`; the parent directory must exist and be writable |
+| `DATABASE_URL` | Yes in deployed environments | Free tier: `sqlite:////app/data/honeydesk.db` (ephemeral). Paid + disk: `sqlite:////var/data/honeydesk.db` |
 | `CORS_ORIGINS` | Yes when the frontend is separate | Comma-separated exact origins, for example `https://honeydesk-web.onrender.com,http://localhost:3000` |
 | `SIMULATE_TOKEN` | Yes on a public deployment | Secret checked by the replay/simulate endpoint |
 | `TRUST_PROXY` | Recommended on Render | `true`, so trusted forwarded client information can be used |
@@ -68,15 +68,18 @@ writable by the image's non-root user.
 
 ## Deploy to Render
 
-The repository-root `render.yaml` Blueprint defines:
+The repository-root `render.yaml` Blueprint defines (both **free**, no card):
 
-1. **honeydesk-api** — Docker FastAPI service + 1 GB disk at `/var/data`
+1. **honeydesk-api** — Docker FastAPI; SQLite at `/app/data` (ephemeral)
 2. **honeydesk-web** — Node Next.js service (`frontend/`) wired to the API
 
-In Render: **New → Blueprint →** select this repo. Both services use the paid
-`starter` plan (persistent disk for SQLite; avoids free-tier spin-down during
-demo). Render generates `SIMULATE_TOKEN` on the API and injects the same value
-into the web service as `NEXT_PUBLIC_SIMULATE_TOKEN`.
+In Render: **New → Blueprint →** select this repo. Render generates
+`SIMULATE_TOKEN` on the API and injects the same value into the web service as
+`NEXT_PUBLIC_SIMULATE_TOKEN`.
+
+Free tier: no persistent disk (DB resets on restart/spin-down) and ~15 min idle
+sleep. That is fine for the hackathon demo — signup + Replay SC-1 recreate the
+path. Warm both URLs before recording.
 
 Default hostnames assumed by the Blueprint:
 
